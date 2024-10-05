@@ -1,3 +1,5 @@
+from asyncio import futures
+
 from telethon import TelegramClient
 
 import db
@@ -43,6 +45,27 @@ async def index(bot: TelegramClient, event, chat_id, sender_id, text, message):
         else:
             await event.reply("用户不存在")
         return
+
+    if text == "广告":
+        async with bot.conversation(event.sender_id, timeout=60) as conv:
+            try:
+                await conv.send_message('请输入广告内容')
+                response = await conv.get_response()
+                answer = response.text
+
+                notifies = []
+                if len(answer) > 157:
+                    notifies.append('* 广告内容字数157字符超数')
+
+                if len(notifies) > 0:
+                    notifies.append('请及时修改。')
+                    return event.reply("\n".join(notifies))
+
+
+            except futures.TimeoutError as e:
+                return await event.respond('未检测到广告内容')
+                pass
+
 
     if text == "未启用群编号":
         data = helpp.getUnUsedGroupNum()
