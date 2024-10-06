@@ -41,6 +41,18 @@ async def get_from(user_tg_id):
     return result
 
 
+async def get_from_by_username(username):
+    opm = OPMysql()
+
+    sql = "select * from froms where username = '%s'" % username
+
+    result = opm.op_select_one(sql)
+
+    opm.dispose()
+
+    return result
+
+
 async def get_user(user_id):
     opm = OPMysql()
 
