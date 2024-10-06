@@ -1,8 +1,10 @@
+import re
 from asyncio import futures
 
 from telethon import TelegramClient
 
 import db
+import db_redis
 import helpp
 
 
@@ -56,6 +58,23 @@ async def index(bot: TelegramClient, event, chat_id, sender_id, text, message):
                 notifies = []
                 if len(answer) > 157:
                     notifies.append('* 广告内容字数157字符超数')
+
+                sensitiveWords = await db_redis.get_sensitive_words()
+                words = []
+                for word in sensitiveWords:
+                    if answer.find(word) > -1:
+                        words.append(word)
+
+                if len(words) > 0:
+                    notifies.append('* 广告内容出现违禁词“%s”' % ("”, “".join(words)))
+
+                pattern = r'\@\S+'
+                usernames = re.findall(pattern, answer)
+                if len(usernames) > 0:
+                    result = helpp.check_user(usernames)
+                    if len(result) > 0:
+                        for notify in result:
+                            notifies.append(notify)
 
                 if len(notifies) > 0:
                     notifies.append('请及时修改。')

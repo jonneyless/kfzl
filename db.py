@@ -51,3 +51,18 @@ async def get_user(user_id):
     opm.dispose()
 
     return result
+
+async def get_sensitive_words():
+    opm = OPMysql()
+
+    sql = "select * from sensitive_words where 1 = 1"
+
+    result = opm.op_select_all(sql)
+
+    opm.dispose()
+
+    words = []
+    for word in result:
+        words.append(word['name'])
+
+    return words

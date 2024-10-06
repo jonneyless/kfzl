@@ -12,3 +12,7 @@ def getUnUsedGroupNum():
         pass
 
     return []
+
+
+def check_user(username):
+    return []
