@@ -53,7 +53,6 @@ def check_ads(usernames, groupNum):
     notifies = []
 
     cheatUsername = []
-    checkedUsername = []
     repeat = False
     groupNumRepeat = False
     ads = getPastAds()
@@ -71,12 +70,9 @@ def check_ads(usernames, groupNum):
                 allContacts.append(contact)
 
     for username in usernames:
-        if username not in checkedUsername:
-            checkedUsername.append(username)
-
-            cheatsSpecial = checkCheatList(username)
-            if int(cheatsSpecial['flag']) == 1:
-                cheatUsername.append(username)
+        cheatsSpecial = checkCheatList(username)
+        if int(cheatsSpecial['flag']) == 1:
+            cheatUsername.append(username)
 
         if not repeat:
             if len(allContacts) > 0:
