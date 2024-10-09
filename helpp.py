@@ -48,15 +48,22 @@ def getPastAds():
     return ads
 
 
-def check_user(usernames):
+def check_ads(usernames, groupNum):
+    groupNumText = "公群" + str(groupNum)
     notifies = []
 
-    cheat = False
+    cheatUsername = []
+    checkedUsername = []
     repeat = False
+    groupNumRepeat = False
     ads = getPastAds()
 
     allContacts = []
     for ad in ads:
+        if not groupNumRepeat:
+            if groupNumText in ad:
+                groupNumRepeat = True
+
         pattern = r'\@(\S+)'
         contacts = re.findall(pattern, ad)
         for contact in contacts:
@@ -64,30 +71,25 @@ def check_user(usernames):
                 allContacts.append(contact)
 
     for username in usernames:
-        if not cheat:
+        if username not in checkedUsername:
+            checkedUsername.append(username)
+
             cheatsSpecial = checkCheatList(username)
             if int(cheatsSpecial['flag']) == 1:
-                cheat = True
+                cheatUsername.append(username)
 
         if not repeat:
             if len(allContacts) > 0:
                 if username in allContacts:
                     repeat = True
 
-    if cheat:
-        notifies.append('* 注意⚠️该广告联系人在骗子库')
+    if len(cheatUsername) > 0:
+        notifies.append('* 注意⚠️该广告联系人在骗子库 @%s' % ' @'.join(cheatUsername))
 
     if repeat:
         notifies.append('* 该广告存在发布重复风险，请再次确认广告内容')
 
+    if groupNumRepeat:
+        notifies.append('* 该广告发布重复')
+
     return notifies
-
-
-def check_group_num(groupNum):
-    text = "公群" + str(groupNum)
-    ads = getPastAds()
-    for ads in ads:
-        if text in ads:
-            return False
-
-    return True

@@ -67,22 +67,23 @@ async def index(bot: TelegramClient, event, chat_id, sender_id, text, message):
                 if len(words) > 0:
                     notifies.append('* 广告内容出现违禁词“%s”' % ("”, “".join(words)))
 
+                usernames = []
                 pattern = r'联系人：(.*)'
                 contact = re.findall(pattern, answer)
                 if len(contact) > 0:
                     pattern = r'\@(\S+)'
                     usernames = re.findall(pattern, contact[0])
-                    if len(usernames) > 0:
-                        result = helpp.check_user(usernames)
-                        if len(result) > 0:
-                            for notify in result:
-                                notifies.append(notify)
 
+                groupNum = 0
                 pattern = r'公群(\d*)'
-                groupNum = re.findall(pattern, answer)
-                if len(groupNum) > 0:
-                    if not helpp.check_group_num(groupNum[0]):
-                        notifies.append('* 该广告发布重复')
+                groupNumData = re.findall(pattern, answer)
+                if len(groupNumData) > 0:
+                    groupNum = int(groupNumData[0])
+
+                result = helpp.check_ads(usernames, groupNum)
+                if len(result) > 0:
+                    for notify in result:
+                        notifies.append(notify)
 
                 if len(notifies) > 0:
                     notifies.append('\n请及时修改。')
