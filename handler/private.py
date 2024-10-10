@@ -34,8 +34,9 @@ class PrivateHandler(BaseHandler):
             notifies.append('* 广告内容出现违禁词“%s”' % ("”, “".join(words)))
 
         usernames = []
-        pattern = r'联系人：\s*(.*)'
+        pattern = r'联系人[：|:]\s*(.*)'
         contact = re.findall(pattern, msg.text)
+        print(contact)
         if len(contact) > 0:
             pattern = r'\@(\S+)'
             usernames = re.findall(pattern, contact[0])

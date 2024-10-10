@@ -115,19 +115,30 @@ def checkIsUser(content):
         pattern = r'href="/s/'
         result = re.findall(pattern, content)
         if len(result) > 0:
-            return False
+            return 1
 
         pattern = r'>[0-9 ]*subscribers<'
         result = re.findall(pattern, content)
         if len(result) > 0:
-            return False
+            return 1
+
+        pattern = r'>[0-9 ]*members<'
+        result = re.findall(pattern, content)
+        if len(result) > 0:
+            return 1
 
         pattern = r'>View in Telegram<'
         result = re.findall(pattern, content)
         if len(result) > 0:
-            return False
+            return 1
 
-    return True
+        pattern = r'tgme_page_description[^"]*">\s*(.*)\s*<\/div>'
+        result = re.findall(pattern, content)
+        if len(result) > 0:
+            if 'you can contact' in result[0]:
+                return 2
+
+    return 0
 
 
 def getBio(content):
@@ -146,6 +157,7 @@ def checkAds(usernames, groupNum):
 
     cheatUsername = []
     notUser = []
+    notExists = []
     bioInfos = []
     repeat = False
     groupNumRepeat = False
@@ -166,8 +178,11 @@ def checkAds(usernames, groupNum):
     for username in usernames:
         webInfo = getWebInfo(username)
         isUser = checkIsUser(webInfo)
-        if not isUser:
+        if isUser == 1:
             notUser.append(username)
+            continue
+        elif isUser == 2:
+            notExists.append(username)
             continue
 
         cheatsSpecial = checkCheatList(username)
@@ -186,6 +201,9 @@ def checkAds(usernames, groupNum):
 
     if len(notUser) > 0:
         notifies.append('* 联系人 @%s 非普通用户' % ' @'.join(notUser))
+
+    if len(notExists) > 0:
+        notifies.append('* 联系人 @%s 不存在' % ' @'.join(notUser))
 
     if len(cheatUsername) > 0:
         notifies.append('* 注意⚠️该广告联系人在骗子库 @%s' % ' @'.join(cheatUsername))

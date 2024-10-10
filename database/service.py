@@ -22,3 +22,7 @@ def getSensitiveWords() -> List[str]:
 
 def getFrom(userId) -> Froms | None:
     return Froms.get_or_none(Froms.user_tg_id == str(userId))
+
+
+def getKefu(userId) -> Users | None:
+    return Users.get_or_none(Users.id == userId)

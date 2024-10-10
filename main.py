@@ -61,8 +61,8 @@ class BotService(Daemon):
         @app.on_callback_query()
         async def callback(client, data):
             handler = CallbackHandler(client=client, data=data, logger=logger)
-            if handler.IsCallback(consts.CallBackStart):
-                await handler.Start()
+            if handler.IsCallback(consts.CallBackCustomer):
+                await handler.Customer()
             data.stop_propagation()
 
         app.run()
