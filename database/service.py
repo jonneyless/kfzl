@@ -15,7 +15,8 @@ def getSensitiveWords() -> List[str]:
         words = []
         data = SensitiveWords.select()
         for datum in data:
-            words.append(datum.name)
+            if datum.name not in words:
+                words.append(datum.name)
         cache.set(key, words, 600)
     return words
 

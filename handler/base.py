@@ -42,7 +42,7 @@ class BaseHandler():
     # 判断是否为命令
     def IsCommand(self, command, startswith=False) -> bool:
         if startswith:
-            return self.data.startswith(command)
+            return self.text.startswith(command)
 
         return self.msg.text.lstrip('/') == command
 
