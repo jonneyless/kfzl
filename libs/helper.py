@@ -24,7 +24,7 @@ def getUserSpecialGroup(userId):
         response = requests.get(url)
         data = response.json()
         if "message" in data and data['message'] == 'success':
-            return data['data']['groups']
+            return len(data['data']['groups'])
     except Exception as e:
         pass
 
@@ -38,7 +38,7 @@ def getUserCommonGroup(userId):
         response = requests.get(url)
         data = response.json()
         if "message" in data and data['message'] == 'success':
-            return data['data']['groups']
+            return len(data['data']['groups'])
     except Exception as e:
         pass
 

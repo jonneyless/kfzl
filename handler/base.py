@@ -80,8 +80,11 @@ class BaseHandler():
         return await self.client.delete_messages(chat_id=self.chatId, message_ids=msgId)
 
     # 回复当前用户
-    async def Reply(self, content, replyMarkup=None):
-        return await self.client.send_message(chat_id=self.chatId, text=content, reply_to_message_id=self.msg.id, reply_markup=replyMarkup)
+    async def Reply(self, content, replyMarkup=None, msgId=None):
+        if msgId is None:
+            msgId = self.msg.id
+
+        return await self.client.send_message(chat_id=self.chatId, text=content, reply_to_message_id=msgId, reply_markup=replyMarkup)
 
     # 编辑当前用户的消息
     async def Edit(self, msgId, content=None, replyMarkup=None, isMedia=False):

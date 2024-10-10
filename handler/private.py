@@ -54,9 +54,9 @@ class PrivateHandler(BaseHandler):
 
         if len(notifies) > 0:
             notifies.append('\n请及时修改。')
-            return await msg.reply("\n".join(notifies))
+            return await self.Reply("\n".join(notifies), msgId=msg.id)
         else:
-            return await msg.reply('广告无异常')
+            return await self.Reply('广告无异常', msgId=msg.id)
 
     async def GroupNum(self):
         data = getUnUsedGroupNum()
@@ -104,5 +104,5 @@ class PrivateHandler(BaseHandler):
 解封次数：%s
 解黑名单次数：%s
 解骗子库次数：%s
-            ''' % (specialGroup, commonGroup, 0, user['yajin_num'], user['yajin_money'], 0, 0, 0, cancel_restrict_num, unban_num, remove_cheat_num, remove_cheat_special_num)
+            ''' % (specialGroup, commonGroup, 0, user.yajin_num, user.yajin_money, 0, 0, 0, 0, cancel_restrict_num, unban_num, remove_cheat_num, remove_cheat_special_num)
             return await self.Reply(content)
