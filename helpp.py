@@ -48,11 +48,63 @@ def getPastAds():
     return ads
 
 
+def getWebInfo(username):
+    tg_url = "https://t.me/%s" % username
+
+    headers = {
+        "Content-Type": "application/json",
+    }
+
+    response = None
+
+    try:
+        response = requests.get(tg_url, headers=headers, timeout=30)
+    except:
+        pass
+
+    if response is not None:
+        return response.text
+
+    return None
+
+
+def checkIsUser(content):
+    if content is not None:
+        pattern = r'href="/s/'
+        result = re.findall(pattern, content)
+        if len(result) > 0:
+            return False
+
+        pattern = r'>[0-9 ]*subscribers<'
+        result = re.findall(pattern, content)
+        if len(result) > 0:
+            return False
+
+        pattern = r'>View in Telegram<'
+        result = re.findall(pattern, content)
+        if len(result) > 0:
+            return False
+
+    return True
+
+
+def getBio(content):
+    if content is not None:
+        pattern = r'tgme_page_description[^"]*">\s*(.*)\s*<\/div>'
+        result = re.findall(pattern, content)
+        if len(result) > 0:
+            return result[0]
+
+    return None
+
+
 def check_ads(usernames, groupNum):
     groupNumText = "公群" + str(groupNum)
     notifies = []
 
     cheatUsername = []
+    notUser = []
+    bioInfos = []
     repeat = False
     groupNumRepeat = False
     ads = getPastAds()
@@ -70,14 +122,28 @@ def check_ads(usernames, groupNum):
                 allContacts.append(contact)
 
     for username in usernames:
+        webInfo = getWebInfo(username)
+        isUser = checkIsUser(webInfo)
+        if not isUser:
+            notUser.append(username)
+            continue
+
         cheatsSpecial = checkCheatList(username)
-        if int(cheatsSpecial['flag']) == 1:
+        if cheatsSpecial is not None and int(cheatsSpecial['flag']) == 1:
             cheatUsername.append(username)
 
         if not repeat:
             if len(allContacts) > 0:
                 if username in allContacts:
                     repeat = True
+
+        bio = getBio(webInfo)
+        if bio is not None:
+            if re.search(r'@\S+', bio) is not None or re.search(r'https?://', bio) is not None:
+                bioInfos.append("<b>" + username + "</b>：" + bio)
+
+    if len(notUser) > 0:
+        notifies.append('* 联系人 @%s 非普通用户' % ' @'.join(notUser))
 
     if len(cheatUsername) > 0:
         notifies.append('* 注意⚠️该广告联系人在骗子库 @%s' % ' @'.join(cheatUsername))
@@ -87,5 +153,8 @@ def check_ads(usernames, groupNum):
 
     if groupNumRepeat:
         notifies.append('* 该广告发布重复')
+
+    if len(bioInfos) > 0:
+        notifies.append("\n<b>可疑联系人简介</b>\n\n" + '\n\n'.join(bioInfos))
 
     return notifies

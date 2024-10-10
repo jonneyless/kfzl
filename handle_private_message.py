@@ -55,7 +55,7 @@ async def index(bot: TelegramClient, event, chat_id, sender_id, text, message):
                 await event.respond("检测中...")
 
                 notifies = []
-                if len(answer) > 157:
+                if len(answer) > 180:
                     notifies.append('* 广告内容字数157字符超数')
 
                 sensitiveWords = await db_redis.get_sensitive_words()
@@ -68,7 +68,7 @@ async def index(bot: TelegramClient, event, chat_id, sender_id, text, message):
                     notifies.append('* 广告内容出现违禁词“%s”' % ("”, “".join(words)))
 
                 usernames = []
-                pattern = r'联系人：(.*)'
+                pattern = r'联系人：\s*(.*)'
                 contact = re.findall(pattern, answer)
                 if len(contact) > 0:
                     pattern = r'\@(\S+)'
@@ -87,7 +87,9 @@ async def index(bot: TelegramClient, event, chat_id, sender_id, text, message):
 
                 if len(notifies) > 0:
                     notifies.append('\n请及时修改。')
-                    return await response.reply("\n".join(notifies))
+                    return await response.reply("\n".join(notifies), parse_mode="html")
+                else:
+                    return await response.reply('广告无异常')
 
             except TimeoutError as e:
                 return await event.respond('未检测到广告内容')
