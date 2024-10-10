@@ -17,6 +17,19 @@ def getUnUsedGroupNum():
     return []
 
 
+def getUserCheatInfo(userId):
+    url = "http://welcome.444danbao.com/api/cheatinfo?key=huionedb&user_tg_id=%s" % userId
+
+    try:
+        response = requests.get(url)
+        data = response.json()
+        return data['data']
+    except Exception as e:
+        pass
+
+    return []
+
+
 def checkCheatList(username):
     url = "http://welcome.444danbao.com/api/checkCheat?key=huionedb&username=%s" % username
 

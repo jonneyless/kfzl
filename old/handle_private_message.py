@@ -1,6 +1,6 @@
 import re
 
-from telethon import TelegramClient
+from telethon import TelegramClient, Button
 
 import db
 import db_redis
@@ -27,7 +27,11 @@ def isNumber(text: str) -> bool:
 
 async def index(bot: TelegramClient, event, chat_id, sender_id, text, message):
     if text == "/start":
-        await event.reply("kefuZLbot")
+        buttons = []
+        buttons.append(Button.inline('客户板块', 'customer'))
+        buttons.append(Button.inline('解禁服务', 'unban'))
+
+        await event.respond("欢迎使用客服助理机器人。", buttons=[buttons])
         return
 
     official = await db.official_kefu_one(sender_id)
@@ -105,6 +109,52 @@ async def index(bot: TelegramClient, event, chat_id, sender_id, text, message):
             await event.reply(", ".join(map(str, items)))
 
         await event.reply("数目： %s" % len(data))
+
+    elif text.startswith('id '):
+        pattern = r'id (\d+)'
+        data = re.findall(pattern, text)
+        if len(data) > 0:
+            userId = data[0]
+            user = await db.get_from(userId)
+
+            groupIds = db.getUserGroupIds(userId)
+            groups = db.getGroupsByIds(groupIds, 'group_type')
+
+            specialGroup = 0
+            commonGroup = 0
+            for group in groups:
+                if group['group_type'] == 1:
+                    commonGroup += 1
+                elif group['group_type'] == 2:
+                    specialGroup += 1
+
+            cheatInfo = helpp.getUserCheatInfo(userId)
+            remove_cheat_special_num = 0
+            remove_cheat_num = 0
+            unban_num = 0
+            cancel_restrict_num = 0
+            if cheatInfo != []:
+                remove_cheat_special_num = cheatInfo['remove_cheat_special_num']
+                remove_cheat_num = cheatInfo['remove_cheat_num']
+                unban_num = cheatInfo['unban_num']
+                cancel_restrict_num = cheatInfo['cancel_restrict_num']
+
+            content = '''
+            所在群组：专群 %s 个，公群 %s 个
+广告发布次数：%s
+上押次数：%s
+上押金额：%s
+纠纷次数：%s
+纠纷次数：%s
+仲裁次数：%s
+公审次数：%s
+解禁次数：%s
+解封次数：%s
+解黑名单次数：%s
+解骗子库次数：%s
+            ''' % (specialGroup, commonGroup, 0, user['yajin_num'], user['yajin_money'], 0, 0, 0, cancel_restrict_num, unban_num, remove_cheat_num, remove_cheat_special_num)
+            return await event.reply(content)
+
     elif len(text) < 10:
         group_tg_id = False
         if text == "SVIP群":

@@ -78,3 +78,29 @@ async def get_sensitive_words():
         words.append(word['name'])
 
     return words
+
+
+async def getUserGroupIds(userId):
+    opm = OPMysql()
+
+    sql = "select group_tg_id from user_group_new where user_tg_id = '%s'" % userId
+
+    result = opm.op_select_all(sql)
+
+    opm.dispose()
+
+    ids = []
+    for data in result:
+        ids.append(data['group_tg_id'])
+
+    return ids
+
+
+async def getGroupsByIds(groupIds, select="*"):
+    opm = OPMysql()
+
+    sql = opm.cur.mogrify("select %s from `groups` where chat_id in %s", (select, groupIds))
+
+    result = opm.op_select_all(sql)
+
+    return result
