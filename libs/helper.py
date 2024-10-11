@@ -74,7 +74,7 @@ def getUserCheat(userId):
 
 
 def userUnCheat(userId):
-    url = "http://welcome.444danbao.com/api/unban?key=huionedb&tgid=%s" % userId
+    url = "http://welcome.444danbao.com//api/cache/delCheatSpecial?key=huionedb4&tgid=%s" % userId
 
     try:
         response = requests.get(url)
@@ -102,7 +102,7 @@ def getUserBlack(userId):
 
 
 def userUnBlack(userId):
-    url = "http://welcome.444danbao.com/api/unban?key=huionedb&tgid=%s" % userId
+    url = "http://welcome.444danbao.com/api/cache/delCheat?key=huionedb4&tgid=%s" % userId
 
     try:
         response = requests.get(url)

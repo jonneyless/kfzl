@@ -28,20 +28,21 @@ class CallbackHandler(BaseHandler):
         if msg is not None:
             user = await self.getUser(msg)
             if user is not None:
-                cheat = getUserCheat(user.user_tg_id)
-                black = getUserBlack(user.user_tg_id)
-
                 content = "客户的状态如下：\n"
                 content += "飞机号：%s\n" % user.user_tg_id
                 content += "帐号：@%s\n" % user.username
 
                 buttons = []
                 rows = []
+
+                cheat = getUserCheat(user.user_tg_id)
                 if cheat is not None and cheat['flag'] == 1:
                     content += "骗子库：是\n"
                     buttons.append(InlineKeyboardButton(text="移出骗子库", callback_data=consts.callback_data.CallBackUnCheat + ':' + user.user_tg_id))
                 else:
                     content += "骗子库：否\n"
+
+                black = getUserBlack(user.user_tg_id)
                 if black is not None and black['flag'] == 1:
                     content += "黑名单：是，%s\n" % black['reason']
                     buttons.append(InlineKeyboardButton(text="移出黑名单", callback_data=consts.callback_data.CallBackUnBlack + ':' + user.user_tg_id))
@@ -60,14 +61,16 @@ class CallbackHandler(BaseHandler):
         if not userUnCheat(userId):
             await self.Respond('处理失败')
         else:
-            await self.Respond('已将 @%s 移出骗子库')
+            user = getFrom(userId)
+            await self.Respond('已将 @%s 移出骗子库' % user.username)
 
     async def UnBlack(self):
         userId = self.data.split(":")[1]
         if not userUnBlack(userId):
             await self.Respond('处理失败')
         else:
-            await self.Respond('已将 @%s 移出黑名单')
+            user = getFrom(userId)
+            await self.Respond('已将 @%s 移出黑名单' % user.username)
 
     async def askUser(self):
         msg = await self.Ask('请输入客户的tgId')
