@@ -65,6 +65,10 @@ class BotService(Daemon):
                 await handler.Customer()
             if handler.IsCallback(consts.CallBackUnblock):
                 await handler.Unblock()
+            if handler.IsCallback(consts.CallBackUnCheat, True):
+                await handler.UnCheat()
+            if handler.IsCallback(consts.CallBackUnBlack, True):
+                await handler.UnBlack()
             data.stop_propagation()
 
         app.run()

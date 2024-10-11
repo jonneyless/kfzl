@@ -1,7 +1,10 @@
+from hydrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+import consts
 from database.mysql import Froms
 from database.service import getFrom, getKefu
 from handler.base import BaseHandler
-from libs.helper import getUserCheat, getUserBlack
+from libs.helper import getUserCheat, getUserBlack, userUnCheat, userUnBlack
 
 
 class CallbackHandler(BaseHandler):
@@ -33,13 +36,38 @@ class CallbackHandler(BaseHandler):
                 content += "帐号：@%s\n" % user.username
 
                 buttons = []
+                rows = []
                 if cheat is not None and cheat['flag'] == 1:
                     content += "骗子库：是\n"
-                    buttons.append(InlineKeyboardButton(text="客户板块", callback_data=consts.callback_data.CallBackCustomer))
+                    buttons.append(InlineKeyboardButton(text="移出骗子库", callback_data=consts.callback_data.CallBackUnCheat + ':' + user.user_tg_id))
+                else:
+                    content += "骗子库：否\n"
                 if black is not None and black['flag'] == 1:
                     content += "黑名单：是，%s\n" % black['reason']
+                    buttons.append(InlineKeyboardButton(text="移出黑名单", callback_data=consts.callback_data.CallBackUnBlack + ':' + user.user_tg_id))
+                else:
+                    content += "黑名单：否\n"
 
-                return await self.Reply(content, msgId=msg.id)
+                if len(buttons) == 0:
+                    return await self.Reply(content, msgId=msg.id)
+
+                rows.append(buttons)
+
+                return await self.Reply(content, msgId=msg.id, replyMarkup=InlineKeyboardMarkup(inline_keyboard=rows))
+
+    async def UnCheat(self):
+        userId = self.data.split(":")[1]
+        if not userUnCheat(userId):
+            await self.Respond('处理失败')
+        else:
+            await self.Respond('已将 @%s 移出骗子库')
+
+    async def UnBlack(self):
+        userId = self.data.split(":")[1]
+        if not userUnBlack(userId):
+            await self.Respond('处理失败')
+        else:
+            await self.Respond('已将 @%s 移出黑名单')
 
     async def askUser(self):
         msg = await self.Ask('请输入客户的tgId')

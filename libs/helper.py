@@ -73,6 +73,20 @@ def getUserCheat(userId):
     return None
 
 
+def userUnCheat(userId):
+    url = "http://welcome.444danbao.com/api/unban?key=huionedb&tgid=%s" % userId
+
+    try:
+        response = requests.get(url)
+        data = response.json()
+        if "message" in data and data['message'] == 'success':
+            return True
+    except Exception as e:
+        pass
+
+    return False
+
+
 def getUserBlack(userId):
     url = "http://welcome.444danbao.com/api/black?key=huionedb&tgid=%s" % userId
 
@@ -85,6 +99,20 @@ def getUserBlack(userId):
         pass
 
     return None
+
+
+def userUnBlack(userId):
+    url = "http://welcome.444danbao.com/api/unban?key=huionedb&tgid=%s" % userId
+
+    try:
+        response = requests.get(url)
+        data = response.json()
+        if "message" in data and data['message'] == 'success':
+            return True
+    except Exception as e:
+        pass
+
+    return False
 
 
 def checkCheatList(username):

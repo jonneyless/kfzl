@@ -1,3 +1,5 @@
 CallBackStart = "start"
 CallBackCustomer = "customer"
 CallBackUnblock = "unblock"
+CallBackUnCheat = "unCheat"
+CallBackUnBlack = "unBlack"
