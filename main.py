@@ -63,6 +63,8 @@ class BotService(Daemon):
             handler = CallbackHandler(client=client, data=data, logger=logger)
             if handler.IsCallback(consts.CallBackCustomer):
                 await handler.Customer()
+            if handler.IsCallback(consts.CallBackUnblock):
+                await handler.Unblock()
             data.stop_propagation()
 
         app.run()

@@ -59,6 +59,34 @@ def getUserCheatInfo(userId):
     return []
 
 
+def getUserCheat(userId):
+    url = "http://welcome.444danbao.com/api/cheat?key=huionedb&tgid=%s" % userId
+
+    try:
+        response = requests.get(url)
+        data = response.json()
+        if "message" in data and data['message'] == 'success':
+            return data['data']
+    except Exception as e:
+        pass
+
+    return None
+
+
+def getUserBlack(userId):
+    url = "http://welcome.444danbao.com/api/black?key=huionedb&tgid=%s" % userId
+
+    try:
+        response = requests.get(url)
+        data = response.json()
+        if "message" in data and data['message'] == 'success':
+            return data['data']
+    except Exception as e:
+        pass
+
+    return None
+
+
 def checkCheatList(username):
     url = "http://welcome.444danbao.com/api/checkCheat?key=huionedb&username=%s" % username
 
