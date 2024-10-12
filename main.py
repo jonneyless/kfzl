@@ -28,8 +28,8 @@ logger.addHandler(console_handler)
 
 class BotService(Daemon):
     def run(self):
-        api_id = 23896125
-        api_hash = "f645cfc0b8d47b9c1d0395d72b3c24db"
+        api_id = appId
+        api_hash = appHash
         bot_token = botToken
 
         app = Client(

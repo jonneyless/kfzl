@@ -40,12 +40,14 @@ class Redis:
 redis = Redis()
 
 md5salt = "x&df9P*a"
-botToken = env.str("BOT_TOKEN", "7417561469:AAH9MElfV6eRQO4UO4oo8QBkZ3AjrMYRLf4")
+botToken = env.str("BOT_TOKEN")
 botId = env.int("BOT_ID")
+appId = env.int("APP_ID")
+appHash = env.str("APP_HASH")
 logFile = env.str("LOG_FILE", 'logs/service.log')
 logFormat = env.str("LOG_FORMAT", "%(asctime)s Line%(lineno)d [%(levelname)s] %(message)s")
 logDateFormat = env.str("LOG_DATE_FORMAT", "%Y-%m-%d %H:%M:%S")
-tgApiUrl = "https://api.telegram.org/bot%s/" % botToken
+tgApiUrl = env.str("TG_API_URL")
 match env.str("LOG_LEVEL"):
     case "debug":
         logLevel = logging.DEBUG

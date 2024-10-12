@@ -1,3 +1,3 @@
 from config.config import *
 
-__all__ = ['DB', 'Redis', 'botToken', 'botId', 'logFile', 'logLevel', 'logFormat', 'logDateFormat']
+__all__ = ['DB', 'Redis', 'botToken', 'botId', 'appId', 'appHash', 'tgApiUrl', 'logFile', 'logLevel', 'logFormat', 'logDateFormat']

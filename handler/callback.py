@@ -37,7 +37,7 @@ class CallbackHandler(BaseHandler):
 
                 cheat = getUserCheat(user.user_tg_id)
                 if cheat is not None and cheat['flag'] == 1:
-                    content += "骗子库：是\n"
+                    content += "骗子库：是，%s\n" % cheat['reason']
                     buttons.append(InlineKeyboardButton(text="移出骗子库", callback_data=consts.callback_data.CallBackUnCheat + ':' + user.user_tg_id))
                 else:
                     content += "骗子库：否\n"
