@@ -3,6 +3,8 @@ import time
 
 import requests
 
+from config import gqzlBotToken
+
 
 def getUnUsedGroupNum():
     url = "http://welcome.444danbao.com/api/dbgroupnums?key=huionedb"
@@ -274,3 +276,52 @@ def checkAds(usernames, groupNum):
         notifies.append("\n<b>可疑联系人简介</b>\n\n" + '\n\n'.join(bioInfos))
 
     return notifies
+
+
+def get_current_time():
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+
+def get_current_timestamp():
+    return int(time.time())
+
+
+def time2timestamp(t, flag=True):
+    if flag:
+        return int(time.mktime(time.strptime(t, '%Y-%m-%d %H:%M:%S')))
+    else:
+        return int(time.mktime(time.strptime(t, '%Y-%m-%d')))
+
+
+def timestamp2time(t):
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t))
+
+
+def createBotApproveLink(groupTgId):
+    tg_url = 'https://api.telegram.org/bot' + gqzlBotToken + '/createChatInviteLink'
+    headers = {
+        "Content-Type": "application/json",
+    }
+    data = {
+        "chat_id": groupTgId,
+    }
+
+    current_timestamp = get_current_timestamp()
+
+    data["name"] = "单个链接"
+    data["creates_join_request"] = False
+    data["expire_date"] = current_timestamp + 86400
+    data["member_limit"] = 1
+
+    response = requests.post(tg_url, json=data, headers=headers, timeout=30)
+
+    link = None
+    if response is not None:
+        data = response.json()
+
+        print(data)
+
+        if ("result" in data) and data["result"]:
+            link = data["result"]["invite_link"]
+
+    return link

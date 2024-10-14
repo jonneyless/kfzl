@@ -3,9 +3,9 @@ import re
 from hydrogram.types import InlineKeyboardMarkup
 
 import consts
-from database.service import getSensitiveWords, getFrom
+from database.service import getSensitiveWords, getFrom, NewGroupLink
 from handler.base import BaseHandler
-from libs.helper import checkAds, getUnUsedGroupNum, getUserCheatInfo, getUserSpecialGroup, getUserCommonGroup
+from libs.helper import checkAds, getUnUsedGroupNum, getUserCheatInfo, getUserSpecialGroup, getUserCommonGroup, createBotApproveLink
 
 
 class PrivateHandler(BaseHandler):
@@ -106,3 +106,39 @@ class PrivateHandler(BaseHandler):
 解骗子库次数：%s
             ''' % (specialGroup, commonGroup, 0, user.yajin_num, user.yajin_money, 0, 0, 0, 0, cancel_restrict_num, unban_num, remove_cheat_num, remove_cheat_special_num)
             return await self.Reply(content)
+
+    async def GenLink(self):
+        groupTgId = False
+        if self.text == "SVIP群":
+            groupTgId = "-1001601629727"
+        elif self.text == "VIP群":
+            groupTgId = "-1001753191368"
+        elif self.text == "盘总群":
+            groupTgId = "-1001824105782"
+        elif self.text == "招聘群":
+            groupTgId = "-1001986586516"
+        elif self.text == "黑客群":
+            groupTgId = "-1001950107503"
+        elif self.text == "站长群":
+            groupTgId = "-1001910194051"
+        elif self.text == "美工/搭建群":
+            groupTgId = "-1001821490286"
+        elif self.text == "账号群":
+            groupTgId = "-1001927554058"
+        elif self.text == "test":
+            groupTgId = "-1001677560391"
+
+        if not groupTgId:
+            return await self.Reply("信息错误")
+
+        link = createBotApproveLink(groupTgId)
+        if link is None:
+            return await self.Reply("创建链接失败，请重试")
+
+        NewGroupLink(groupTgId, self.SenderId(), link)
+
+        msg = self.text
+        msg += "\n单日单人链接\n"
+        msg += link
+
+        return await self.Reply(msg)

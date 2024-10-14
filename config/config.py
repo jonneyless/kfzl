@@ -42,6 +42,7 @@ redis = Redis()
 md5salt = "x&df9P*a"
 botToken = env.str("BOT_TOKEN")
 botId = env.int("BOT_ID")
+gqzlBotToken = env.str("GQZL_BOT_TOKEN")
 appId = env.int("APP_ID")
 appHash = env.str("APP_HASH")
 logFile = env.str("LOG_FILE", 'logs/service.log')

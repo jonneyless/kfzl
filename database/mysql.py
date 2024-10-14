@@ -1,4 +1,4 @@
-from peewee import Model, CharField, SmallIntegerField, BigIntegerField, IntegerField, DecimalField
+from peewee import Model, CharField, SmallIntegerField, BigIntegerField, IntegerField, DecimalField, DateTimeField
 from playhouse.pool import PooledMySQLDatabase
 from playhouse.shortcuts import ReconnectMixin
 
@@ -86,6 +86,17 @@ class Users(BaseModel):
 
     class Meta:
         table_name = "users"
+
+
+class GroupLink(BaseModel):
+    id = UnsignedBigIntegerField(index=True)
+    group_tg_id = CharField(max_length=64)
+    user_tg_id = CharField(max_length=64)
+    link = CharField(max_length=255)
+    created_at = DateTimeField()
+
+    class Meta:
+        table_name = "group_link"
 
 
 class OfficialKefu(BaseModel):

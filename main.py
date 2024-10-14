@@ -53,6 +53,8 @@ class BotService(Daemon):
                     await handler.GroupNum()
                 elif handler.IsCommand(consts.CmdQueryUser, True):
                     await handler.QueryUser()
+                else:
+                    await handler.GenLink()
             else:
                 await handler.Respond(consts.TextNotKefu)
 
