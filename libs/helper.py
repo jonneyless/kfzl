@@ -7,6 +7,42 @@ import requests
 from config import gqzlBotToken
 
 
+def getDataFromWelcome(api, **kwargs):
+    url = "http://welcome.444danbao.com/api/%s?key=huionedb" % api
+
+    params = None
+    if 'params' in kwargs:
+        params = kwargs['params']
+
+    try:
+        response = requests.get(url, params)
+        data = response.json()
+        if "message" in data and data['message'] == 'success':
+            return data['data']
+    except Exception as e:
+        pass
+
+    return None
+
+
+def setDataForWelcome(api, **kwargs):
+    url = "http://welcome.444danbao.com/api/%s?key=huionedb" % api
+
+    params = None
+    if 'params' in kwargs:
+        params = kwargs['params']
+
+    try:
+        response = requests.post(url, json=params)
+        data = response.json()
+        if "message" in data and data['message'] == 'success':
+            return data['data']
+    except Exception as e:
+        pass
+
+    return None
+
+
 def getUnUsedGroupNum():
     url = "http://welcome.444danbao.com/api/dbgroupnums?key=huionedb"
 
@@ -320,9 +356,19 @@ def createBotApproveLink(groupTgId):
     if response is not None:
         data = response.json()
 
-        print(data)
-
         if ("result" in data) and data["result"]:
             link = data["result"]["invite_link"]
 
     return link
+
+
+def getGroupBackupData():
+    return getDataFromWelcome("kefu/beiyong")
+
+
+def getGroupInfo(title):
+    return getDataFromWelcome("kefu/groupinfo", params={'title': title})
+
+
+def setGroupTitle(groupId, title):
+    return setDataForWelcome("kefu/settitle", params={'group_tg_id': groupId, 'title_new': title})

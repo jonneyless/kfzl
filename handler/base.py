@@ -5,7 +5,7 @@ import hydrogram
 from hydrogram import Client
 from hydrogram.errors import MessageNotModified, MessageIdInvalid
 from hydrogram.parser.markdown import Markdown
-from hydrogram.types import CallbackQuery
+from hydrogram.types import CallbackQuery, InlineKeyboardMarkup
 from hydrogram.types.messages_and_media import message
 
 from config import config
@@ -16,6 +16,7 @@ class BaseHandler():
     def __init__(self, client: Client, data: message.Message | CallbackQuery, logger: logging):
         self.client = client
         self.logger = logger
+        self.oData = data
         self.text = None
 
         if isinstance(data, message.Message):
@@ -73,6 +74,8 @@ class BaseHandler():
 
     # 给当前用户发送消息
     async def Respond(self, content, replyMarkup=None):
+        if replyMarkup is not None:
+            replyMarkup = InlineKeyboardMarkup(inline_keyboard=replyMarkup)
         return await self.client.send_message(chat_id=self.chatId, text=content, reply_markup=replyMarkup)
 
     # 删除消息
@@ -84,10 +87,16 @@ class BaseHandler():
         if msgId is None:
             msgId = self.msg.id
 
+        if replyMarkup is not None:
+            replyMarkup = InlineKeyboardMarkup(inline_keyboard=replyMarkup)
+
         return await self.client.send_message(chat_id=self.chatId, text=content, reply_to_message_id=msgId, reply_markup=replyMarkup)
 
     # 编辑当前用户的消息
     async def Edit(self, msgId, content=None, replyMarkup=None, isMedia=False):
+        if replyMarkup is not None:
+            replyMarkup = InlineKeyboardMarkup(inline_keyboard=replyMarkup)
+
         try:
             if content is None and replyMarkup is not None:
                 return await self.client.edit_message_reply_markup(chat_id=self.chatId, message_id=int(msgId), reply_markup=replyMarkup)

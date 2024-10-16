@@ -53,10 +53,12 @@ class BotService(Daemon):
                     await handler.GroupNum()
                 elif handler.IsCommand(consts.CmdQueryUser, True):
                     await handler.QueryUser()
+                elif handler.IsCommand(consts.CmdCommonGroup):
+                    await handler.CommonGroup()
                 else:
                     await handler.GenLink()
             else:
-                await handler.Respond(consts.TextNotKefu)
+                await handler.Respond("对不起，你不是汇旺客服人员")
 
             data.stop_propagation()
 
@@ -71,6 +73,12 @@ class BotService(Daemon):
                 await handler.UnCheat()
             if handler.IsCallback(consts.CallBackUnBlack, True):
                 await handler.UnBlack()
+            if handler.IsCallback(consts.CallBackCommonGroupBackup):
+                await handler.group.Backup()
+            if handler.IsCallback(consts.CallBackCommonGroupQueryStatus):
+                await handler.group.QueryStatus()
+            if handler.IsCallback(consts.CallBackCommonGroupModifyTitle):
+                await handler.group.ModifyTitle()
             data.stop_propagation()
 
         app.run()

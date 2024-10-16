@@ -1,7 +1,5 @@
 import re
 
-from hydrogram.types import InlineKeyboardMarkup
-
 import consts
 from database.service import getSensitiveWords, getFrom, NewGroupLink
 from handler.base import BaseHandler
@@ -11,7 +9,7 @@ from libs.helper import checkAds, getUnUsedGroupNum, getUserCheatInfo, getUserSp
 class PrivateHandler(BaseHandler):
 
     async def Welcome(self):
-        return await self.Respond(consts.TextStart, InlineKeyboardMarkup(inline_keyboard=consts.BtnWelcome))
+        return await self.Respond("🏠 你好！\n\n欢迎使用**客服助理机器人**", consts.BtnWelcome)
 
     async def Ad(self):
         msg = await self.Ask('请输入广告内容')
@@ -70,7 +68,7 @@ class PrivateHandler(BaseHandler):
         await self.Reply("数目： %s" % len(data))
 
     async def QueryUser(self):
-        pattern = r'id (\d+)'
+        pattern = r'id\s*(\d+)'
         data = re.findall(pattern, self.text)
         if len(data) > 0:
             userId = data[0]
@@ -106,6 +104,9 @@ class PrivateHandler(BaseHandler):
 解骗子库次数：%s
             ''' % (specialGroup, commonGroup, 0, user.yajin_num, user.yajin_money, 0, 0, 0, 0, cancel_restrict_num, unban_num, remove_cheat_num, remove_cheat_special_num)
             return await self.Reply(content)
+
+    async def CommonGroup(self):
+        return await self.Respond("请选择要进行的公群操作", consts.BtnCommonGroup)
 
     async def GenLink(self):
         groupTgId = False

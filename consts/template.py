@@ -2,12 +2,17 @@ from hydrogram.types import InlineKeyboardButton
 
 import consts
 
-TextStart = "🏠 你好！\n\n欢迎使用**客服助理机器人**"
-TextNotKefu = "对不起，你不是汇旺客服人员"
-
 BtnWelcome = [
     [
         InlineKeyboardButton(text="客户板块", callback_data=consts.callback_data.CallBackCustomer),
         InlineKeyboardButton(text="解禁服务", callback_data=consts.callback_data.CallBackUnblock),
+    ]
+]
+
+BtnCommonGroup = [
+    [
+        InlineKeyboardButton(text="查看客服备用群", callback_data=consts.callback_data.CallBackCommonGroupBackup),
+        InlineKeyboardButton(text="查询群组状态", callback_data=consts.callback_data.CallBackCommonGroupQueryStatus),
+        InlineKeyboardButton(text="修改群名", callback_data=consts.callback_data.CallBackCommonGroupModifyTitle),
     ]
 ]
