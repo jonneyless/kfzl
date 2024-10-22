@@ -1,10 +1,12 @@
 import datetime
+import json
 import re
 import time
 
 import requests
 
 from config import gqzlBotToken
+from libs.logger import logger
 
 
 def getDataFromWelcome(api, **kwargs):
@@ -37,6 +39,7 @@ def setDataForWelcome(api, **kwargs):
         data = response.json()
         if "message" in data and data['message'] == 'success':
             return data['data']
+        logger.error('Request Failed. Params: %s, Response: %s' % (json.dumps(params), json.dumps(data)))
     except Exception as e:
         pass
 

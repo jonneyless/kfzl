@@ -55,5 +55,7 @@ match env.str("LOG_LEVEL"):
         logLevel = logging.DEBUG
     case "info":
         logLevel = logging.INFO
+    case "error":
+        logLevel = logging.ERROR
     case _:
         logLevel = logging.NOTSET

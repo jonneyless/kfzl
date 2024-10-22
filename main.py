@@ -1,6 +1,4 @@
-import logging
 import sys
-from logging.handlers import TimedRotatingFileHandler
 
 from hydrogram import Client, filters, enums
 
@@ -9,21 +7,7 @@ from config import *
 from handler import PrivateHandler
 from handler.callback import CallbackHandler
 from libs.daemon import Daemon
-
-formatter = logging.Formatter(fmt=logFormat, datefmt=logDateFormat)
-
-logger = logging.getLogger()
-logger.setLevel(logLevel)
-
-time_handler = TimedRotatingFileHandler(filename=logFile, when='D', interval=1, backupCount=7)
-time_handler.setLevel(logLevel)
-time_handler.setFormatter(formatter)
-logger.addHandler(time_handler)
-
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+from libs.logger import logger
 
 
 class BotService(Daemon):

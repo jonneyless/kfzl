@@ -26,17 +26,17 @@ class CallbackHandler(BaseHandler):
                 kefuNickname = kefu.nickname
                 kefuName = kefu.name
 
-            return await self.Reply("飞机号：%s\n帐号：@%s\n所属客服：%s %s" % (user.user_tg_id, user.username, kefuNickname, kefuName), msgId=msg.id)
+            return await self.Reply("飞机号：<code>%s</code>\n帐号：@<code>%s</code>\n所属客服：%s %s" % (user.user_tg_id, user.username, kefuNickname, kefuName), msgId=msg.id)
 
     async def Unblock(self):
         msg = await self.askUser()
         if msg is not None:
             content = "客户的状态如下：\n"
-            content += "飞机号：%s\n" % msg.text
+            content += "飞机号：<code>%s</code>\n" % msg.text
 
             user = getFrom(msg.text)
             if user is not None:
-                content += "帐号：@%s\n" % user.username
+                content += "帐号：@<code>%s</code>\n" % user.username
 
             buttons = []
             rows = []

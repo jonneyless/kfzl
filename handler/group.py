@@ -1,4 +1,3 @@
-from config import notifyGroupId
 from handler.base import BaseHandler
 from libs.helper import getGroupBackupData, getGroupInfo, setGroupTitle
 
@@ -12,7 +11,7 @@ class GroupHandler(BaseHandler):
 
         content = ""
         for datum in data:
-            content += "群名：%s\ntgid：%s\n链接：%s\n\n" % (datum['title'], datum['chat_id'], datum['link'])
+            content += "群名：%s\ntgid：<code>%s</code>\n链接：%s\n\n" % (datum['title'], datum['chat_id'], datum['link'])
 
         return await self.Respond(content)
 
@@ -25,7 +24,7 @@ class GroupHandler(BaseHandler):
         if data is None or "title" not in data:
             return await self.Respond('对不起，没有数据')
 
-        content = "%s\ntgid：%s\n链接：%s\n业务类型：%s\n公群人数：%s人" % (data['title'], data['chat_id'], data['link'], data['business_detail_type'], data['num'])
+        content = "%s\ntgid：<code>%s</code>\n链接：%s\n业务类型：%s\n公群人数：%s人" % (data['title'], data['chat_id'], data['link'], data['business_detail_type'], data['num'])
 
         return await self.Respond(content)
 
@@ -43,12 +42,12 @@ class GroupHandler(BaseHandler):
             return await self.Respond("没有收到群名")
 
         data = setGroupTitle(groupId, msg.text)
-        if 'title_old' not in data:
+        if data is None or 'title_old' not in data:
             return await self.Respond('修改失败，请联系技术')
 
         content = "tg_id：%s\n旧群名：%s\n新群名：%s" % (groupId, data['title_old'], data['title_new'])
 
-        await self.client.send_message(notifyGroupId, content)
+        # await self.client.send_message(notifyGroupId, content)
 
         content = "修改成功\n\n单人单个一小时进群链接：%s" % data['link']
 
