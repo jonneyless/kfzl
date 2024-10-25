@@ -9,6 +9,13 @@ BtnWelcome = [
     ]
 ]
 
+BtnAd = [
+    [
+        InlineKeyboardButton(text="获取广告链接", callback_data=consts.callback_data.CallBackAdGetLink),
+        InlineKeyboardButton(text="检测广告内容", callback_data=consts.callback_data.CallBackAdCheck),
+    ]
+]
+
 BtnCommonGroup = [
     [
         InlineKeyboardButton(text="查看客服备用群", callback_data=consts.callback_data.CallBackCommonGroupBackup),

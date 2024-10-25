@@ -5,7 +5,7 @@ import time
 
 import requests
 
-from config import gqzlBotToken
+from config import gqzlBotToken, notifyBotToken, notifyGroupId, createLinkUrl
 from libs.logger import logger
 
 
@@ -22,6 +22,7 @@ def getDataFromWelcome(api, **kwargs):
         if "message" in data and data['message'] == 'success':
             return data['data']
     except Exception as e:
+        logger.error(e)
         pass
 
     return None
@@ -41,6 +42,7 @@ def setDataForWelcome(api, **kwargs):
             return data['data']
         logger.error('Request Failed. Params: %s, Response: %s' % (json.dumps(params), json.dumps(data)))
     except Exception as e:
+        logger.error(e)
         pass
 
     return None
@@ -54,6 +56,7 @@ def getUnUsedGroupNum():
         data = response.json()
         return data['data']
     except Exception as e:
+        logger.error(e)
         pass
 
     return []
@@ -68,6 +71,7 @@ def getUserSpecialGroup(userId):
         if "message" in data and data['message'] == 'success':
             return len(data['data']['groups'])
     except Exception as e:
+        logger.error(e)
         pass
 
     return 0
@@ -82,6 +86,7 @@ def getUserCommonGroup(userId):
         if "message" in data and data['message'] == 'success':
             return len(data['data']['groups'])
     except Exception as e:
+        logger.error(e)
         pass
 
     return 0
@@ -96,6 +101,7 @@ def getUserCheatInfo(userId):
         if "message" in data and data['message'] == 'success':
             return data['data']
     except Exception as e:
+        logger.error(e)
         pass
 
     return []
@@ -110,6 +116,7 @@ def getUserCheat(userId):
         if "message" in data and data['message'] == 'success':
             return data['data']
     except Exception as e:
+        logger.error(e)
         pass
 
     return None
@@ -124,6 +131,7 @@ def userUnCheat(userId):
         if "message" in data and data['message'] == 'success':
             return True
     except Exception as e:
+        logger.error(e)
         pass
 
     return False
@@ -138,6 +146,7 @@ def getUserBlack(userId):
         if "message" in data and data['message'] == 'success':
             return data['data']
     except Exception as e:
+        logger.error(e)
         pass
 
     return None
@@ -152,6 +161,7 @@ def userUnBlack(userId):
         if "message" in data and data['message'] == 'success':
             return True
     except Exception as e:
+        logger.error(e)
         pass
 
     return False
@@ -365,6 +375,21 @@ def createBotApproveLink(groupTgId):
     return link
 
 
+def sendNotification(content):
+    tg_url = 'https://api.telegram.org/bot' + notifyBotToken + '/sendMessage'
+
+    headers = {
+        "Content-Type": "application/json",
+    }
+
+    data = {
+        "chat_id": notifyGroupId,
+        "text": content,
+    }
+
+    requests.post(tg_url, json=data, headers=headers, timeout=30)
+
+
 def getGroupBackupData():
     return getDataFromWelcome("kefu/beiyong")
 
@@ -373,5 +398,36 @@ def getGroupInfo(title):
     return getDataFromWelcome("kefu/groupinfo", params={'title': title})
 
 
-def setGroupTitle(groupId, title):
-    return setDataForWelcome("kefu/settitle", params={'group_tg_id': groupId, 'title_new': title})
+def setGroupTitle(groupId, title, userTgId, username, fullname):
+    return setDataForWelcome("kefu/settitle", params={'group_tg_id': groupId, 'title_new': title, 'user_tg_id': userTgId, 'username': username, 'fullname': fullname})
+
+
+def createAdLink(groupNum, monthAd, auditLink):
+    headers = {
+        "Content-Type": "application/json",
+    }
+
+    linkType = 4
+    if monthAd and not auditLink:
+        linkType = 5
+    elif not monthAd and auditLink:
+        linkType = 7
+    elif monthAd and auditLink:
+        linkType = 8
+
+    data = {
+        "key": "huionedb2",
+        "num": groupNum,
+        "type": linkType
+    }
+
+    response = requests.post(createLinkUrl, json=data, headers=headers, timeout=30)
+
+    link = None
+    if response is not None:
+        data = response.json()
+
+        if ("message" in data) and data["message"] == "success":
+            link = data["data"]["link"]
+
+    return link

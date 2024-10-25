@@ -1,9 +1,9 @@
 import re
 
 import consts
-from database.service import getSensitiveWords, getFrom, NewGroupLink
+from database.service import getFrom, NewGroupLink
 from handler.base import BaseHandler
-from libs.helper import checkAds, getUnUsedGroupNum, getUserCheatInfo, getUserSpecialGroup, getUserCommonGroup, createBotApproveLink
+from libs.helper import getUnUsedGroupNum, getUserCheatInfo, getUserSpecialGroup, getUserCommonGroup, createBotApproveLink
 
 
 class PrivateHandler(BaseHandler):
@@ -12,49 +12,7 @@ class PrivateHandler(BaseHandler):
         return await self.Respond("🏠 你好！\n\n欢迎使用**客服助理机器人**", consts.BtnWelcome)
 
     async def Ad(self):
-        msg = await self.Ask('请输入广告内容')
-        if msg is None:
-            return await self.Respond('未检测到广告内容')
-
-        await self.Respond('检测中...')
-
-        notifies = []
-        if len(msg.text) > 180:
-            notifies.append('* 广告内容字数180字符超数')
-
-        sensitiveWords = getSensitiveWords()
-        words = []
-        for word in sensitiveWords:
-            if msg.text.find(word) > -1:
-                words.append(word)
-
-        if len(words) > 0:
-            notifies.append('* 广告内容出现违禁词“%s”' % ("”, “".join(words)))
-
-        usernames = []
-        pattern = r'联系人[：|:]\s*(.*)'
-        contact = re.findall(pattern, msg.text)
-        print(contact)
-        if len(contact) > 0:
-            pattern = r'\@(\S+)'
-            usernames = re.findall(pattern, contact[0])
-
-        groupNum = 0
-        pattern = r'公群(\d*)'
-        groupNumData = re.findall(pattern, msg.text)
-        if len(groupNumData) > 0:
-            groupNum = int(groupNumData[0])
-
-        result = checkAds(usernames, groupNum)
-        if len(result) > 0:
-            for notify in result:
-                notifies.append(notify)
-
-        if len(notifies) > 0:
-            notifies.append('\n请及时修改。')
-            return await self.Reply("\n".join(notifies), msgId=msg.id)
-        else:
-            return await self.Reply('广告无异常', msgId=msg.id)
+        await self.Respond('请选择要进行的广告操作', consts.BtnAd)
 
     async def GroupNum(self):
         data = getUnUsedGroupNum()
@@ -136,7 +94,7 @@ class PrivateHandler(BaseHandler):
         if link is None:
             return await self.Reply("创建链接失败，请重试")
 
-        NewGroupLink(groupTgId, self.SenderId(), link)
+        NewGroupLink(groupTgId, self.SenderId(), link, 2)
 
         msg = self.text
         msg += "\n单日单人链接\n"

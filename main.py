@@ -63,6 +63,10 @@ class BotService(Daemon):
                 await handler.group.QueryStatus()
             if handler.IsCallback(consts.CallBackCommonGroupModifyTitle):
                 await handler.group.ModifyTitle()
+            if handler.IsCallback(consts.CallBackAdGetLink):
+                await handler.adLink()
+            if handler.IsCallback(consts.CallBackAdCheck):
+                await handler.adCheck()
             data.stop_propagation()
 
         app.run()

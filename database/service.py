@@ -5,11 +5,12 @@ from database.mysql import *
 from database.redis import cache
 
 
-def NewGroupLink(groupTgId, userTgId, link):
+def NewGroupLink(groupTgId, userTgId, link, linkType):
     model = GroupLink()
     model.group_tg_id = groupTgId
     model.user_tg_id = userTgId
     model.link = link
+    model.type = linkType
     model.created_at = datetime.now()
     model.save()
 

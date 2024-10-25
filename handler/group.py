@@ -1,5 +1,5 @@
 from handler.base import BaseHandler
-from libs.helper import getGroupBackupData, getGroupInfo, setGroupTitle
+from libs.helper import getGroupBackupData, getGroupInfo, setGroupTitle, sendNotification
 
 
 class GroupHandler(BaseHandler):
@@ -41,13 +41,13 @@ class GroupHandler(BaseHandler):
         if msg is None:
             return await self.Respond("没有收到群名")
 
-        data = setGroupTitle(groupId, msg.text)
+        data = setGroupTitle(groupId, msg.text, msg.from_user.id, msg.from_user.username, msg.from_user.full_name)
         if data is None or 'title_old' not in data:
             return await self.Respond('修改失败，请联系技术')
 
         content = "tg_id：%s\n旧群名：%s\n新群名：%s" % (groupId, data['title_old'], data['title_new'])
 
-        # await self.client.send_message(notifyGroupId, content)
+        sendNotification(content)
 
         content = "修改成功\n\n单人单个一小时进群链接：%s" % data['link']
 
