@@ -2,7 +2,8 @@ from hydrogram.types import InlineKeyboardButton
 
 from consts import CallBackCancel, CallBackCommonGroupModifyConfirm
 from handler.base import BaseHandler
-from libs.helper import getGroupBackupData, getGroupInfo, setGroupTitle, sendNotification
+from libs.api import sendNotification
+from libs.helper import getGroupBackupData, getGroupInfo, setGroupTitle
 
 
 class GroupHandler(BaseHandler):

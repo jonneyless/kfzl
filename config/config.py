@@ -42,17 +42,18 @@ redis = Redis()
 md5salt = "x&df9P*a"
 botToken = env.str("BOT_TOKEN")
 botId = env.int("BOT_ID")
-qgBotToken = env.str("QG_BOT_TOKEN")
-gqzlBotToken = env.str("GQZL_BOT_TOKEN")
 appId = env.int("APP_ID")
+appHash = env.str("APP_HASH")
+gqzlBotToken = env.str("GQZL_BOT_TOKEN")
 notifyBotToken = env.str("NOTIFY_BOT_TOKEN")
 notifyGroupId = env.int("NOTIFY_GROUP_ID")
-appHash = env.str("APP_HASH")
 logFile = env.str("LOG_FILE", 'logs/service.log')
 logFormat = env.str("LOG_FORMAT", "%(asctime)s Line%(lineno)d [%(levelname)s] %(message)s")
 logDateFormat = env.str("LOG_DATE_FORMAT", "%Y-%m-%d %H:%M:%S")
-tgApiUrl = env.str("TG_API_URL")
 createLinkUrl = env.str("CREATE_LINK_URL")
+welcomeApiUrl = env.str("WELCOME_API_URL")
+he444ApiUrl = env.str("HE444_API_URL")
+callbackUrl = env.str("CALLBACK_URL")
 match env.str("LOG_LEVEL"):
     case "debug":
         logLevel = logging.DEBUG

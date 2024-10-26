@@ -1,5 +1,8 @@
+import time
 from datetime import datetime
 from typing import List
+
+from peewee import SQL
 
 from database.mysql import *
 from database.redis import cache
@@ -15,6 +18,28 @@ def NewGroupLink(groupTgId, userTgId, link, linkType):
     model.save()
 
     return model
+
+
+def NewUnblockRecord(actionId, actionName, userId, types):
+    model = FromUnblockRecords()
+    model.action_tg_id = actionId
+    model.action_name = actionName
+    model.from_tg_id = userId
+    model.type = types
+    model.created_at = int(time.time())
+    model.save()
+
+
+def getUnCheatCount(userId) -> int:
+    return FromUnblockRecords.select().where(SQL('from_tg_id = %s and `type` & 1 = 1' % userId)).count()
+
+
+def getUnBlackCount(userId) -> int:
+    return FromUnblockRecords.select().where(SQL('from_tg_id = %s and `type` & 2 = 2' % userId)).count()
+
+
+def getUnblockRecords(userId) -> List[FromUnblockRecords]:
+    return FromUnblockRecords.select().where(FromUnblockRecords.from_tg_id == userId).order_by(FromUnblockRecords.created_at.asc())
 
 
 def checkIsKefu(tgId):

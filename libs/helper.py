@@ -4,180 +4,158 @@ import re
 import time
 
 import requests
+from hydrogram.types import InlineKeyboardButton
 
-from config import gqzlBotToken, notifyBotToken, notifyGroupId, createLinkUrl
+import consts
+from config import gqzlBotToken, welcomeApiUrl, he444ApiUrl, createLinkUrl, callbackUrl
 from libs.logger import logger
 
 
-def getDataFromWelcome(api, **kwargs):
-    url = "http://welcome.444danbao.com/api/%s?key=huionedb" % api
+def getWelcomeApi(api):
+    return "%s/%s" % (welcomeApiUrl, api)
 
+
+def getHe444Api(api):
+    return "%s/%s" % (he444ApiUrl, api)
+
+
+def getDataFromApi(url, **kwargs):
     params = None
     if 'params' in kwargs:
         params = kwargs['params']
 
+    if 'key' not in params:
+        params['key'] = 'huionedb'
+
     try:
         response = requests.get(url, params)
         data = response.json()
+        logger.info('Request Url: ' + url)
+        logger.info('Response Params: ' + json.dumps(params))
+        logger.info('Response Data: ' + json.dumps(data))
         if "message" in data and data['message'] == 'success':
             return data['data']
     except Exception as e:
+        logger.error('url: ' + url)
+        logger.error('params: ' + json.dumps(params))
         logger.error(e)
+        pass
+
+    return None
+
+
+def setDataByApi(url, **kwargs):
+    params = None
+    if 'params' in kwargs:
+        params = kwargs['params']
+
+    if 'key' not in params:
+        params['key'] = 'huionedb'
+
+    try:
+        response = requests.post(url, json=params)
+        data = response.json()
+        logger.info('Request Url: ' + url)
+        logger.info('Response Params: ' + json.dumps(params))
+        logger.info('Response Data: ' + json.dumps(data))
+        if "message" in data and data['message'] == 'success':
+            return data['data']
+        logger.error('Request Failed. Params: %s, Response: %s' % (json.dumps(params), json.dumps(data)))
+    except Exception as e:
+        logger.error('Request Failed. Params: %s, Exception: %s' % (json.dumps(params), e))
         pass
 
     return None
 
 
 def setDataForWelcome(api, **kwargs):
-    url = "http://welcome.444danbao.com/api/%s?key=huionedb" % api
+    return setDataByApi(getWelcomeApi(api), **kwargs)
 
-    params = None
-    if 'params' in kwargs:
-        params = kwargs['params']
 
-    try:
-        response = requests.post(url, json=params)
-        data = response.json()
-        if "message" in data and data['message'] == 'success':
-            return data['data']
-        logger.error('Request Failed. Params: %s, Response: %s' % (json.dumps(params), json.dumps(data)))
-    except Exception as e:
-        logger.error(e)
-        pass
+def getDataFromHe444(api, **kwargs):
+    return getDataFromApi(getHe444Api(api), **kwargs)
 
-    return None
+
+def getDataFromWelcome(api, **kwargs):
+    return getDataFromApi(getWelcomeApi(api), **kwargs)
 
 
 def getUnUsedGroupNum():
-    url = "http://welcome.444danbao.com/api/dbgroupnums?key=huionedb"
-
-    try:
-        response = requests.get(url)
-        data = response.json()
-        return data['data']
-    except Exception as e:
-        logger.error(e)
-        pass
+    data = getDataFromWelcome('dbgroupnums')
+    if data is not None:
+        return data
 
     return []
 
 
 def getUserSpecialGroup(userId):
-    url = "http://welcome.444danbao.com/api/identity?key=huionedb&user_tg_id=%s" % userId
-
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if "message" in data and data['message'] == 'success':
-            return len(data['data']['groups'])
-    except Exception as e:
-        logger.error(e)
-        pass
+    data = getDataFromWelcome('identity', params={'user_tg_id': userId})
+    if data is not None and 'groups' in data:
+        return len(data['groups'])
 
     return 0
 
 
 def getUserCommonGroup(userId):
-    url = "http://he444.444danbao.com/api/identity?key=huionedb&user_tg_id=%s" % userId
-
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if "message" in data and data['message'] == 'success':
-            return len(data['data']['groups'])
-    except Exception as e:
-        logger.error(e)
-        pass
+    data = getDataFromHe444('identity', params={'user_tg_id': userId})
+    if data is not None and 'groups' in data:
+        return len(data['groups'])
 
     return 0
 
 
 def getUserCheatInfo(userId):
-    url = "http://welcome.444danbao.com/api/cheatinfo?key=huionedb&user_tg_id=%s" % userId
-
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if "message" in data and data['message'] == 'success':
-            return data['data']
-    except Exception as e:
-        logger.error(e)
-        pass
-
-    return []
+    return getDataFromWelcome('cheatinfo', params={'user_tg_id': userId})
 
 
 def getUserCheat(userId):
-    url = "http://welcome.444danbao.com/api/cheat?key=huionedb&tgid=%s" % userId
+    return getDataFromWelcome('cheat', params={'tgid': userId})
 
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if "message" in data and data['message'] == 'success':
-            return data['data']
-    except Exception as e:
-        logger.error(e)
-        pass
 
-    return None
+def getUserBlack(userId):
+    return getDataFromWelcome('black', params={'tgid': userId})
+
+
+def getUserInfo(userId):
+    return getDataFromWelcome('kefu/userinfo', params={'user_tg_id': userId})
 
 
 def userUnCheat(userId):
-    url = "http://welcome.444danbao.com//api/cache/delCheatSpecial?key=huionedb4&tgid=%s" % userId
-
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if "message" in data and data['message'] == 'success':
-            return True
-    except Exception as e:
-        logger.error(e)
-        pass
+    data = setDataForWelcome('cache/delCheatSpecial', params={'key': 'huionedb4', 'tgid': userId})
+    if data is not None:
+        return True
 
     return False
 
 
-def getUserBlack(userId):
-    url = "http://welcome.444danbao.com/api/black?key=huionedb&tgid=%s" % userId
-
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if "message" in data and data['message'] == 'success':
-            return data['data']
-    except Exception as e:
-        logger.error(e)
-        pass
-
-    return None
-
-
 def userUnBlack(userId):
-    url = "http://welcome.444danbao.com/api/cache/delCheat?key=huionedb4&tgid=%s" % userId
+    data = setDataForWelcome('cache/delCheat', params={'key': 'huionedb4', 'tgid': userId})
+    if data is not None:
+        return True
 
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if "message" in data and data['message'] == 'success':
-            return True
-    except Exception as e:
-        logger.error(e)
-        pass
+    return False
+
+
+def userUnban(userId, actType, groupType):
+    data = getDataFromWelcome('kefu/unban', params={'user_tg_id': userId, 'type': actType, 'grouptype': groupType})
+    if data is not None:
+        return True
+
+    return False
+
+
+def userGQUnban(userId, callbackData):
+    data = getDataFromWelcome('kefu/cancelRestrictGongqun', params={'user_tg_id': userId, 'callback_data': callbackData, 'callback_url': callbackUrl})
+    if data is not None:
+        return True
 
     return False
 
 
 def checkCheatList(username):
-    url = "http://welcome.444danbao.com/api/checkCheat?key=huionedb&username=%s" % username
-
-    response = requests.get(url, timeout=30)
-
-    if response is not None:
-        result = response.json()
-        if "message" in result:
-            if result["message"] == "success":
-                if "flag" in result["data"]:
-                    return result["data"]
+    data = getDataFromWelcome('checkCheat', params={'username': username})
+    if data is not None and "flag" in data:
+        return data
 
     return None
 
@@ -185,6 +163,7 @@ def checkCheatList(username):
 def getPastAds():
     startTime = int(time.mktime(datetime.date.today().timetuple()))
     url = "http://qunguan.huionedanbao.com:8680/api/gongqiu?key=huionedb&start=%s" % startTime
+    print(url)
 
     response = requests.get(url, timeout=30)
 
@@ -274,7 +253,9 @@ def checkAds(usernames, groupNum):
     allContacts = []
     for ad in ads:
         if not groupNumRepeat:
-            if groupNumText in ad:
+            pattern = r'公群(\d*)'
+            result = re.search(pattern, ad)
+            if result is not None and result.group(0) == groupNumText:
                 groupNumRepeat = True
 
         pattern = r'\@(\S+)'
@@ -375,21 +356,6 @@ def createBotApproveLink(groupTgId):
     return link
 
 
-def sendNotification(content):
-    tg_url = 'https://api.telegram.org/bot' + notifyBotToken + '/sendMessage'
-
-    headers = {
-        "Content-Type": "application/json",
-    }
-
-    data = {
-        "chat_id": notifyGroupId,
-        "text": content,
-    }
-
-    requests.post(tg_url, json=data, headers=headers, timeout=30)
-
-
 def getGroupBackupData():
     return getDataFromWelcome("kefu/beiyong")
 
@@ -434,3 +400,41 @@ def createAdLink(groupNum, monthAd, auditLink):
                 title = data["data"]["title"]
 
     return link, title
+
+
+def buildUnblockButton(text, userId, selected, selfValue, status):
+    if selected is not None:
+        if (selected & selfValue) == selfValue:
+            text = "✅️" + text
+            return InlineKeyboardButton(text=text, callback_data=consts.callback_data.CallBackUnblock + ':' + userId + ':' + str(selected ^ selfValue) + ':' + ','.join(status))
+    else:
+        selected = selfValue
+    return InlineKeyboardButton(text=text, callback_data=consts.callback_data.CallBackUnblock + ':' + userId + ':' + str(selected | selfValue) + ':' + ','.join(status))
+
+
+def formatDatetime(timestamp):
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
+
+
+def setBlack(userId, optId, reason):
+    data = setDataForWelcome("kefu/addCheat", params={'key': 'huionedb4', 'tgid': userId, 'ope_user_tg_id': optId, 'reason': reason})
+    if data is not None:
+        return True
+
+    return False
+
+
+def setCheat(userId, optId, reason):
+    data = setDataForWelcome("kefu/addCheatSpecial", params={'key': 'huionedb4', 'tgid': userId, 'ope_user_tg_id': optId, 'reason': reason})
+    if data is not None:
+        return True
+
+    return False
+
+
+def checkOfficial(userId):
+    data = getDataFromWelcome('kefu/official', params={'tgid': userId})
+    if data is not None and "flag" in data:
+        return data['flag'] == 1
+
+    return False

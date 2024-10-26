@@ -1,6 +1,9 @@
 import re
 
+from hydrogram.types import BotCommand
+
 import consts
+from consts import CmdMenus
 from database.service import getFrom, NewGroupLink
 from handler.base import BaseHandler
 from libs.helper import getUnUsedGroupNum, getUserCheatInfo, getUserSpecialGroup, getUserCommonGroup, createBotApproveLink
@@ -9,10 +12,29 @@ from libs.helper import getUnUsedGroupNum, getUserCheatInfo, getUserSpecialGroup
 class PrivateHandler(BaseHandler):
 
     async def Welcome(self):
-        return await self.Respond("🏠 你好！\n\n欢迎使用**客服助理机器人**", consts.BtnWelcome)
+        await self.Delete(self.msg.id)
+
+        commands = await self.client.get_bot_commands()
+        for menu in CmdMenus:
+            if menu not in commands:
+                await self.client.set_bot_commands([BotCommand(menu, CmdMenus[menu])])
+
+        return await self.Respond("🏠 你好！\n\n欢迎使用<b>客服助理机器人</b>", consts.BtnWelcome, inlineMarkup=False)
+
+    async def Customer(self):
+        await self.CleanPreviousMessage()
+
+        await self.Respond('请选择要进行的客户操作', consts.BtnCustomer)
 
     async def Ad(self):
+        await self.CleanPreviousMessage()
+
         await self.Respond('请选择要进行的广告操作', consts.BtnAd)
+
+    async def CommonGroup(self):
+        await self.CleanPreviousMessage()
+
+        return await self.Respond("请选择要进行的公群操作", consts.BtnCommonGroup)
 
     async def GroupNum(self):
         data = getUnUsedGroupNum()
@@ -41,7 +63,8 @@ class PrivateHandler(BaseHandler):
             remove_cheat_num = 0
             unban_num = 0
             cancel_restrict_num = 0
-            if cheatInfo != []:
+
+            if cheatInfo is not None:
                 remove_cheat_special_num = cheatInfo['remove_cheat_special_num']
                 remove_cheat_num = cheatInfo['remove_cheat_num']
                 unban_num = cheatInfo['unban_num']
@@ -62,11 +85,6 @@ class PrivateHandler(BaseHandler):
 解骗子库次数：%s
             ''' % (specialGroup, commonGroup, 0, user.yajin_num, user.yajin_money, 0, 0, 0, 0, cancel_restrict_num, unban_num, remove_cheat_num, remove_cheat_special_num)
             return await self.Reply(content)
-
-    async def CommonGroup(self):
-        await self.CleanPreviousMessage()
-
-        return await self.Respond("请选择要进行的公群操作", consts.BtnCommonGroup)
 
     async def GenLink(self):
         groupTgId = False

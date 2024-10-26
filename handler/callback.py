@@ -1,25 +1,36 @@
-import re
+import json
 
 from hydrogram.types import InlineKeyboardButton
 
-import consts
-from database.service import getFrom, getKefu, getSensitiveWords
+from consts import UnblockButtons, CallBackUnblockConfirm, CallBackSetBlockConfirm, CallBackUnblock, CallBackCancel
+from database.service import getFrom, getKefu, getUnCheatCount, getUnBlackCount, NewUnblockRecord, getUnblockRecords
+from handler.ad import AdHandler
 from handler.base import BaseHandler
 from handler.group import GroupHandler
-from libs.helper import getUserCheat, getUserBlack, userUnCheat, userUnBlack, checkAds, createAdLink
+from libs.helper import getUserCheat, getUserBlack, userUnCheat, userUnBlack, getUserInfo, buildUnblockButton, userUnban, userGQUnban, formatDatetime, setBlack, setCheat, checkOfficial
+from libs.logger import logger
 
 
 class CallbackHandler(BaseHandler):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.group = GroupHandler(client=self.client, data=self.oData, logger=self.logger)
+
+    def group(self):
+        return GroupHandler(client=self.client, data=self.oData, logger=self.logger)
+
+    def ad(self):
+        return AdHandler(client=self.client, data=self.oData, logger=self.logger)
 
     async def Customer(self):
+        await self.CleanPreviousMessage()
+
         msg = await self.askUser()
         if msg is not None:
-            user = getFrom(msg.text)
+            userId = msg.text
+
+            await self.CleanAskMessage(msg)
+
+            user = getFrom(userId)
             if user is None:
-                return await self.Reply('用户不存在', msgId=msg.id)
+                return await self.Respond('用户“%s”不存在' % userId)
 
             kefuNickname = ''
             kefuName = ''
@@ -28,143 +39,437 @@ class CallbackHandler(BaseHandler):
                 kefuNickname = kefu.nickname
                 kefuName = kefu.name
 
-            return await self.Reply("飞机号：<code>%s</code>\n帐号：@<code>%s</code>\n所属客服：%s %s" % (user.user_tg_id, user.username, kefuNickname, kefuName), msgId=msg.id)
+            return await self.Respond("tgId：<code>%s</code>\n用户名：@<code>%s</code>\n所属客服：%s %s" % (user.user_tg_id, user.username, kefuNickname, kefuName))
 
     async def Unblock(self):
-        msg = await self.askUser()
-        if msg is not None:
+        data = self.data.split(":")
+        userId = None
+        selected = 0
+        status = []
+        dataLen = len(data)
+        isEdit = False
+        if dataLen > 1:
+            userId = data[1]
+
+            if dataLen > 2:
+                selected = int(data[2])
+                status = data[3].split(",")
+                isEdit = True
+        else:
+            await self.CleanPreviousMessage()
+
+        loading = None
+        content = None
+
+        if userId is None:
+            msg = await self.askUser()
+            if msg is None:
+                return
+
+            await self.CleanAskMessage(msg)
+
+            userId = msg.text
+
+        if not isEdit:
+            loading = await self.Respond('正在查询，请稍等...')
+
             content = "客户的状态如下：\n"
-            content += "飞机号：<code>%s</code>\n" % msg.text
+            content += "tgId：<code>%s</code>\n" % userId
 
-            user = getFrom(msg.text)
+            user = getFrom(userId)
             if user is not None:
-                content += "帐号：@<code>%s</code>\n" % user.username
+                content += "用户名：@<code>%s</code>\n" % user.username
 
-            buttons = []
-            rows = []
+            content += '解黑名单次数：%s\n' % getUnBlackCount(userId)
+            content += '解骗子库次数：%s\n' % getUnCheatCount(userId)
 
-            cheat = getUserCheat(msg.text)
+            cheat = getUserCheat(userId)
             if cheat is not None and cheat['flag'] == 1:
                 content += "骗子库：是，%s, %s\n" % (cheat['reason'], cheat['ope_user'])
-                buttons.append(InlineKeyboardButton(text="移出骗子库", callback_data=consts.callback_data.CallBackUnCheat + ':' + msg.text))
+                status.append('1')
             else:
                 content += "骗子库：否\n"
+                status.append('0')
 
-            black = getUserBlack(msg.text)
+            black = getUserBlack(userId)
             if black is not None and black['flag'] == 1:
                 content += "黑名单：是，%s, %s\n" % (black['reason'], black['ope_user'])
-                buttons.append(InlineKeyboardButton(text="移出黑名单", callback_data=consts.callback_data.CallBackUnBlack + ':' + msg.text))
+                status.append('1')
             else:
                 content += "黑名单：否\n"
+                status.append('0')
 
-            if len(buttons) == 0:
-                return await self.Reply(content, msgId=msg.id)
+            userInfo = getUserInfo(userId)
+            if userInfo is not None:
+                if 'daqun' in userInfo:
+                    if userInfo['daqun']['is_restricted'] == 1:
+                        content += "大群 @daqun 禁言：是\n"
+                    else:
+                        content += "大群 @daqun 禁言：否\n"
 
-            rows.append(buttons)
+                    if userInfo['daqun']['is_baned'] == 1:
+                        content += "大群 @daqun 屏蔽：是\n"
+                    else:
+                        content += "大群 @daqun 屏蔽：否\n"
 
-            return await self.Reply(content, msgId=msg.id, replyMarkup=rows)
+                    if userInfo['daqun']['is_restricted'] == 1 or userInfo['daqun']['is_baned'] == 1:
+                        status.append('1')
+                    else:
+                        status.append('0')
 
-    async def UnCheat(self):
-        userId = self.data.split(":")[1]
-        if not userUnCheat(userId):
-            await self.Respond('处理失败')
+                if 'huione888' in userInfo:
+                    if userInfo['huione888']['is_restricted'] == 1:
+                        content += "大群 @huione888 禁言：是\n"
+                    else:
+                        content += "大群 @huione888 禁言：否\n"
+
+                    if userInfo['huione888']['is_baned'] == 1:
+                        content += "大群 @huione888 屏蔽：是\n"
+                    else:
+                        content += "大群 @huione888 屏蔽：否\n"
+
+                    if userInfo['huione888']['is_restricted'] == 1 or userInfo['huione888']['is_baned'] == 1:
+                        status.append('1')
+                    else:
+                        status.append('0')
+
+                if 'vip' in userInfo:
+                    if userInfo['vip']['is_restricted'] == 1:
+                        content += "VIP禁言：是\n"
+                    else:
+                        content += "VIP禁言：否\n"
+
+                    if userInfo['vip']['is_baned'] == 1:
+                        content += "VIP屏蔽：是\n"
+                    else:
+                        content += "VIP屏蔽：否\n"
+
+                    if userInfo['vip']['is_restricted'] == 1 or userInfo['vip']['is_baned'] == 1:
+                        status.append('1')
+                    else:
+                        status.append('0')
+
+                if 'gongqun' in userInfo:
+                    if userInfo['vip']['is_restricted'] == 1:
+                        content += "公群禁言：是\n"
+                        status.append('1')
+                    else:
+                        content += "公群禁言：否\n"
+                        status.append('0')
+
+        buttons = []
+        selectAll = 0
+        for i in range(len(UnblockButtons)):
+            if status[i] == '1':
+                selectAll = selectAll | UnblockButtons[i]['number']
+                buttons.append(buildUnblockButton(UnblockButtons[i]['text'], userId, selected, UnblockButtons[i]['number'], status))
+
+        rows = []
+        rowButtons = []
+        if len(buttons) > 0:
+            for button in buttons:
+                rowButtons.append(button)
+
+                if len(rowButtons) == 2:
+                    rows.append(rowButtons)
+                    rowButtons = []
+
+            if len(rowButtons) > 0:
+                rows.append(rowButtons)
+
+            rowButtons = [
+                InlineKeyboardButton(text='确定', callback_data=CallBackUnblockConfirm + ':' + userId + ':' + str(selected))
+            ]
+
+        rowButtons.append(InlineKeyboardButton(text="关闭", callback_data=CallBackCancel))
+        rows.append(rowButtons)
+
+        if not isEdit:
+            if loading is not None:
+                return await self.Edit(loading.id, content, replyMarkup=rows)
+            else:
+                return await self.Respond(content, replyMarkup=rows)
         else:
+            return await self.Edit(self.msg.id, replyMarkup=rows)
+
+    async def UnblockConfirm(self):
+        data = self.data.split(":")
+        userId = data[1]
+        selected = int(data[2])
+
+        user = getFrom(userId)
+        name = userId
+        if user is not None:
+            name = '@' + user.username
+
+        await self.Edit(self.msg.id, content=self.msg.text)
+
+        content = '开始处理 %s，请等待...\n' % name
+        msg = await self.Respond(content)
+
+        if (selected & 1) == 1:
+            content += '\n移出骗子库：'
+            if not userUnCheat(userId):
+                content += '失败'
+            else:
+                content += '成功'
+
+            await msg.edit(content)
+
+        if (selected & 2) == 2:
+            content += '\n移出黑名单：'
+            if not userUnBlack(userId):
+                content += '失败'
+            else:
+                content += '成功'
+
+            await msg.edit(content)
+
+        if (selected & 4) == 4:
+            content += '\n@daqun 移除黑名单：'
+            if not userUnban(userId, 1, 'daqun'):
+                content += '失败'
+            else:
+                content += '成功'
+
+            await msg.edit(content)
+
+            content += '\n@daqun 解除禁言：'
+            if not userUnban(userId, 2, 'daqun'):
+                content += '失败'
+            else:
+                content += '成功'
+
+            await msg.edit(content)
+
+        if (selected & 8) == 8:
+            content += '\n@huione888 移除黑名单：'
+            if not userUnban(userId, 1, 'huione888'):
+                content += '失败'
+            else:
+                content += '成功'
+
+            await msg.edit(content)
+
+            content += '\n@huione888 解除禁言：'
+            if not userUnban(userId, 2, 'huione888'):
+                content += '失败'
+            else:
+                content += '成功'
+
+            await msg.edit(content)
+
+        if (selected & 16) == 16:
+            content += '\nVIP 移除黑名单：'
+            if not userUnban(userId, 1, 'vip'):
+                content += '失败'
+            else:
+                content += '成功'
+
+            await msg.edit(content)
+
+            content += '\nVIP 解除禁言：'
+            if not userUnban(userId, 2, 'vip'):
+                content += '失败'
+            else:
+                content += '成功'
+
+            await msg.edit(content)
+
+        if (selected & 32) == 32:
+            content += '\n公群解除禁言：'
+            callbackData = {'message_id': msg.id, 'chat_id': self.chatId, 'text': content}
+            content += '处理中...'
+            await msg.edit(content)
+
+            userGQUnban(userId, json.dumps(callbackData))
+
+        NewUnblockRecord(self.SenderIdString(), self.SenderUsername(), userId, selected)
+
+        await self.Delete(self.msg.id)
+
+        self.data = CallBackUnblock + ':' + userId
+        await self.Unblock()
+
+    async def UnblockQuery(self):
+        await self.CleanPreviousMessage()
+
+        msg = await self.askUser()
+        if msg is not None:
+            userId = msg.text
+
+            await self.CleanAskMessage(msg)
+
+            records = getUnblockRecords(userId)
+            recordGroup = {
+                1: {
+                    'title': '骗子库',
+                    'data': []
+                },
+                2: {
+                    'title': '黑名单',
+                    'data': []
+                },
+                4: {
+                    'title': 'daqun',
+                    'data': []
+                },
+                8: {
+                    'title': 'huione888',
+                    'data': []
+                },
+                16: {
+                    'title': 'VIP',
+                    'data': []
+                },
+                32: {
+                    'title': '公群',
+                    'data': []
+                },
+            }
+            for record in records:
+                for actType in recordGroup:
+                    if (record.type & actType) == actType:
+                        recordGroup[actType]['data'].append(record)
+
+            content = "客户解禁记录如下：\n"
+            content += "tgId：<code>%s</code>\n" % userId
+
             user = getFrom(userId)
             if user is not None:
-                await self.Respond('已将 @%s 移出骗子库' % user.username)
-            else:
-                await self.Respond('已将 %s 移出骗子库' % userId)
+                content += "用户名：@<code>%s</code>\n" % user.username
 
-    async def UnBlack(self):
-        userId = self.data.split(":")[1]
-        if not userUnBlack(userId):
-            await self.Respond('处理失败')
-        else:
-            user = getFrom(userId)
-            if user is not None:
-                await self.Respond('已将 @%s 移出黑名单' % user.username)
-            else:
-                await self.Respond('已将 %s 移出黑名单' % userId)
+            for actType in recordGroup:
+                if len(recordGroup[actType]['data']) == 0:
+                    continue
 
-    async def askUser(self):
-        msg = await self.Ask('请输入客户的tgId')
+                content += "\n" + recordGroup[actType]['title'] + "：\n"
+                for record in recordGroup[actType]['data']:
+                    content += formatDatetime(record.created_at) + ' - 操作人 @' + record.action_name + '\n'
+
+            return await self.Respond(content)
+
+    async def SetBlock(self):
+        data = self.data.split(":")
+        dataLen = len(data)
+        if dataLen == 1:
+            await self.CleanPreviousMessage()
+
+            msg = await self.askUser('要封禁')
+            if msg is None:
+                return await self.Respond('未收到输入的 TgID')
+
+            await self.CleanAskMessage(msg)
+
+            data.append(msg.text)
+            dataLen += 1
+
+        tgId = None
+        inStatus = 0
+        if dataLen > 1:
+            tgId = str(data[1])
+
+            if checkOfficial(tgId):
+                return await self.Respond('“%s”是官方帐号' % tgId)
+
+            cheat = getUserCheat(tgId)
+            if cheat is not None and cheat['flag'] == 1:
+                inStatus = inStatus | 1
+
+            black = getUserBlack(tgId)
+            if black is not None and black['flag'] == 1:
+                inStatus = inStatus | 2
+
+            if inStatus & 1 == 1 and inStatus & 2 == 2:
+                return await self.Respond('“%s”已在黑名单和骗子库中' % tgId)
+
+            if dataLen == 2:
+                data.append(str(inStatus))
+                dataLen += 1
+
+                buttons = []
+                if inStatus & 1 != 1:
+                    buttons.append(InlineKeyboardButton(text="骗子库", callback_data=':'.join(data) + ':1'))
+
+                if inStatus & 2 != 2:
+                    buttons.append(InlineKeyboardButton(text="黑名单", callback_data=':'.join(data) + ':2'))
+
+                buttons.append(InlineKeyboardButton(text="取消", callback_data=CallBackCancel))
+
+                return await self.Respond('请选择要对“%s”进行的处理类型' % tgId, [buttons])
+
+        if dataLen > 2:
+            inStatus = int(data[2])
+            blockType = int(data[3])
+            data.pop()
+
+            buttons = []
+            if inStatus & 1 != 1:
+                buttons.append(InlineKeyboardButton(text="✅️骗子库" if blockType & 1 == 1 else "️骗子库", callback_data=':'.join(data) + ':' + (str(blockType ^ 1) if blockType & 1 == 1 else str(blockType | 1))))
+
+            if inStatus & 2 != 2:
+                buttons.append(InlineKeyboardButton(text="✅️黑名单" if blockType & 2 == 2 else "黑名单", callback_data=':'.join(data) + ':' + (str(blockType ^ 2) if blockType & 2 == 2 else str(blockType | 2))))
+
+            if blockType & 1 == 1 or blockType & 2 == 2:
+                buttons.append(InlineKeyboardButton(text="确认", callback_data="%s:%s:%s" % (CallBackSetBlockConfirm, tgId, blockType)))
+
+            buttons.append(InlineKeyboardButton(text="取消", callback_data=CallBackCancel))
+
+            return await self.Edit(self.msg.id, replyMarkup=[buttons])
+
+    async def SetBlockConfirm(self):
+        await self.CleanPreviousMessage()
+
+        data = self.data.split(":")
+
+        logger.info("Callback Data: " + json.dumps(data))
+
+        blockTgId = str(data[1])
+        blockType = int(data[2])
+
+        content = "请输入封禁原因\n\ntgId: " + blockTgId + '\n'
+        content += "类型："
+        if blockType & 1 == 1:
+            content += "骗子库"
+        if blockType & 2 == 2:
+            if blockType & 1 == 1:
+                content += "、"
+            content += "黑名单"
+
+        msg = await self.Ask(content)
+        if msg is None:
+            return await self.Respond('未收到输入的封禁原因')
+
+        await self.CleanAskMessage(msg)
+
+        if blockType & 1 == 1:
+            setCheat(blockTgId, self.SenderIdString(), msg.text)
+
+        if blockType & 2 == 2:
+            setBlack(blockTgId, self.SenderIdString(), msg.text)
+
+        content = "完成封禁\n\ntgId: " + blockTgId + '\n'
+        content += "类型："
+        if blockType & 1 == 1:
+            content += "骗子库"
+        if blockType & 2 == 2:
+            if blockType & 1 == 1:
+                content += "、"
+            content += "黑名单"
+        content += "\n原因：" + msg.text
+
+        return await self.Respond(content)
+
+    async def askUser(self, userType="客户"):
+        msg = await self.Ask('请输入%s的tgId' % userType)
 
         if msg is None:
-            await self.Alert('未收到客户的tgId')
+            await self.CleanAskMessage(msg)
+            await self.Alert('未收到%s的tgId' % userType)
         elif not self.isNumber(msg.text):
+            await self.CleanAskMessage(msg)
             await self.Alert('输入的tgId不正确')
         else:
             return msg
 
         return None
-
-    async def adLink(self):
-        msg = await self.Ask('请输入获取指令')
-        if msg is None:
-            return await self.Respond('未检测到指令')
-
-        pattern = r'(.*?)群(月?)广告(审核|)链接'
-        result = re.match(pattern, msg.text)
-        if result is None:
-            return await self.Reply('指令错误', msgId=msg.id)
-
-        groupNum = result.group(1)
-        monthAd = result.group(2) == '月'
-        auditLink = result.group(3) == '审核'
-
-        if not self.isNumber(groupNum):
-            return await self.Reply('群编号错误', msgId=msg.id)
-
-        link, title = createAdLink(groupNum, monthAd, auditLink)
-        if link is None:
-            return await self.Reply('创建链接失败，请重试', msgId=msg.id)
-
-        content = title
-        content += "\n%s广告%s(%s天有效)链接\n" % ('月' if monthAd else '', '审核' if auditLink else '', '30' if monthAd else '7')
-        content += link
-
-        return await self.Reply(content, msgId=msg.id)
-
-    async def adCheck(self):
-        msg = await self.Ask('请输入广告内容')
-        if msg is None:
-            return await self.Respond('未检测到广告内容')
-
-        await self.Respond('检测中...')
-
-        notifies = []
-        if len(msg.text) > 180:
-            notifies.append('* 广告内容字数180字符超数')
-
-        sensitiveWords = getSensitiveWords()
-        words = []
-        for word in sensitiveWords:
-            if msg.text.find(word) > -1:
-                words.append(word)
-
-        if len(words) > 0:
-            notifies.append('* 广告内容出现违禁词“%s”' % ("”, “".join(words)))
-
-        usernames = []
-        pattern = r'联系人[：|:]\s*(.*)'
-        contact = re.findall(pattern, msg.text)
-        if len(contact) > 0:
-            pattern = r'\@(\S+)'
-            usernames = re.findall(pattern, contact[0])
-
-        groupNum = 0
-        pattern = r'公群(\d*)'
-        groupNumData = re.findall(pattern, msg.text)
-        if len(groupNumData) > 0:
-            groupNum = int(groupNumData[0])
-
-        result = checkAds(usernames, groupNum)
-        if len(result) > 0:
-            for notify in result:
-                notifies.append(notify)
-
-        if len(notifies) > 0:
-            notifies.append('\n请及时修改。')
-            return await self.Reply("\n".join(notifies), msgId=msg.id)
-        else:
-            return await self.Reply('广告无异常', msgId=msg.id)

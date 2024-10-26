@@ -75,29 +75,16 @@ class Froms(BaseModel):
         table_name = "froms"
 
 
-class Bots(BaseModel):
+class FromUnblockRecords(BaseModel):
     id = UnsignedBigIntegerField(index=True)
-    tg_id = CharField(max_length=64)
-    username = CharField(max_length=255)
-    token = CharField(max_length=255)
-    fullname = CharField(max_length=255)
-    type = IntegerField(default=-1)
-    sortt = IntegerField(default=-1)
-    type_back = IntegerField()
-    is_all = IntegerField(default=2)
+    action_tg_id = CharField(max_length=64)
+    action_name = CharField(max_length=64)
+    from_tg_id = CharField(max_length=64)
+    type = UnsignedIntegerField(default=0)
+    created_at = UnsignedIntegerField(default=0)
 
     class Meta:
-        table_name = "bots"
-
-
-class BotGroup(BaseModel):
-    id = UnsignedBigIntegerField(index=True)
-    group_tg_id = CharField(max_length=64)
-    user_tg_id = CharField(max_length=64)
-    type = UnsignedIntegerField(default=1)
-
-    class Meta:
-        table_name = "bot_group"
+        table_name = "from_unblock_records"
 
 
 class Users(BaseModel):

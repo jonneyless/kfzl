@@ -31,6 +31,8 @@ class BotService(Daemon):
             if handler.IsKefu():
                 if handler.IsCommand(consts.CmdStart):
                     await handler.Welcome()
+                elif handler.IsCommand(consts.CmdCustomer):
+                    await handler.Customer()
                 elif handler.IsCommand(consts.CmdAd):
                     await handler.Ad()
                 elif handler.IsCommand(consts.CmdNotInUseGroupNum):
@@ -51,24 +53,28 @@ class BotService(Daemon):
             handler = CallbackHandler(client=client, data=data, logger=logger)
             if handler.IsCallback(consts.CallBackCustomer):
                 await handler.Customer()
-            if handler.IsCallback(consts.CallBackUnblock):
+            if handler.IsCallback(consts.CallBackUnblock, True):
                 await handler.Unblock()
-            if handler.IsCallback(consts.CallBackUnCheat, True):
-                await handler.UnCheat()
-            if handler.IsCallback(consts.CallBackUnBlack, True):
-                await handler.UnBlack()
+            if handler.IsCallback(consts.CallBackUnblockConfirm, True):
+                await handler.UnblockConfirm()
+            if handler.IsCallback(consts.CallBackUnblockQuery):
+                await handler.UnblockQuery()
+            if handler.IsCallback(consts.CallBackSetBlock, True):
+                await handler.SetBlock()
+            if handler.IsCallback(consts.CallBackSetBlockConfirm, True):
+                await handler.SetBlockConfirm()
             if handler.IsCallback(consts.CallBackCommonGroupBackup):
-                await handler.group.Backup()
+                await handler.group().Backup()
             if handler.IsCallback(consts.CallBackCommonGroupQueryStatus):
-                await handler.group.QueryStatus()
+                await handler.group().QueryStatus()
             if handler.IsCallback(consts.CallBackCommonGroupModifyTitle):
-                await handler.group.ModifyTitle()
+                await handler.group().ModifyTitle()
             if handler.IsCallback(consts.CallBackCommonGroupModifyConfirm, True):
-                await handler.group.ModifyConfirm()
+                await handler.group().ModifyConfirm()
             if handler.IsCallback(consts.CallBackAdGetLink):
-                await handler.adLink()
+                await handler.ad().adLink()
             if handler.IsCallback(consts.CallBackAdCheck):
-                await handler.adCheck()
+                await handler.ad().adCheck()
             if handler.IsCallback(consts.CallBackCancel):
                 await handler.Delete(handler.msg.id)
             data.stop_propagation()

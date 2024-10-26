@@ -5,7 +5,7 @@ import hydrogram
 from hydrogram import Client
 from hydrogram.errors import MessageNotModified, MessageIdInvalid
 from hydrogram.parser.markdown import Markdown
-from hydrogram.types import CallbackQuery, InlineKeyboardMarkup
+from hydrogram.types import CallbackQuery, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from hydrogram.types.messages_and_media import message
 
 from config import config
@@ -72,6 +72,13 @@ class BaseHandler():
     def SenderIdString(self):
         return str(self.sender.id)
 
+    # 获取信息发送人Username
+    def SenderUsername(self):
+        if self.sender.username is not None:
+            return self.sender.username
+
+        return str(self.sender.id)
+
     # 清理上一个消息
     async def CleanPreviousMessage(self):
         return await self.Delete(self.msg.id)
@@ -85,9 +92,12 @@ class BaseHandler():
         return await self.Delete([msg.id, msg.sent_message.id])
 
     # 给当前用户发送消息
-    async def Respond(self, content, replyMarkup=None):
+    async def Respond(self, content, replyMarkup=None, inlineMarkup=True):
         if replyMarkup is not None:
-            replyMarkup = InlineKeyboardMarkup(inline_keyboard=replyMarkup)
+            if inlineMarkup:
+                replyMarkup = InlineKeyboardMarkup(inline_keyboard=replyMarkup)
+            else:
+                replyMarkup = ReplyKeyboardMarkup(keyboard=replyMarkup)
         return await self.client.send_message(chat_id=self.chatId, text=content, reply_markup=replyMarkup)
 
     # 删除消息
