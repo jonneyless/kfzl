@@ -115,11 +115,11 @@ class CallbackHandler(BaseHandler):
         if not self.isNumber(groupNum):
             return await self.Reply('群编号错误', msgId=msg.id)
 
-        link = createAdLink(groupNum, monthAd, auditLink)
+        link, title = createAdLink(groupNum, monthAd, auditLink)
         if link is None:
             return await self.Reply('创建链接失败，请重试', msgId=msg.id)
 
-        content = "公群" + groupNum
+        content = title
         content += "\n%s广告%s(%s天有效)链接\n" % ('月' if monthAd else '', '审核' if auditLink else '', '30' if monthAd else '7')
         content += link
 
