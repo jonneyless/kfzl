@@ -424,12 +424,12 @@ def createAdLink(groupNum, monthAd, auditLink):
     response = requests.post(createLinkUrl, json=data, headers=headers, timeout=30)
 
     link = None
+    title = '公群' + groupNum
     if response is not None:
         data = response.json()
 
         if ("message" in data) and data["message"] == "success":
             link = data["data"]["link"]
-            title = '公群' + groupNum
             if 'title' in data["data"]:
                 title = data["data"]["title"]
 
