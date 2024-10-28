@@ -429,5 +429,8 @@ def createAdLink(groupNum, monthAd, auditLink):
 
         if ("message" in data) and data["message"] == "success":
             link = data["data"]["link"]
+            title = '公群' + groupNum
+            if 'title' in data["data"]:
+                title = data["data"]["title"]
 
-    return link
+    return link, title
