@@ -21,7 +21,7 @@ class BotService(Daemon):
             api_id=api_id,
             api_hash=api_hash,
             bot_token=bot_token,
-            parse_mode=enums.ParseMode.DEFAULT,
+            parse_mode=enums.ParseMode.HTML,
         )
 
         @app.on_message(filters.private)
