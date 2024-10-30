@@ -69,6 +69,8 @@ class BotService(Daemon):
                 await handler.adLink()
             if handler.IsCallback(consts.CallBackAdCheck):
                 await handler.adCheck()
+            if handler.IsCallback(consts.CallBackCancel):
+                await handler.Delete(handler.msg.id)
             data.stop_propagation()
 
         app.run()
