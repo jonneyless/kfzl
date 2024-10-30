@@ -63,6 +63,8 @@ class BotService(Daemon):
                 await handler.group.QueryStatus()
             if handler.IsCallback(consts.CallBackCommonGroupModifyTitle):
                 await handler.group.ModifyTitle()
+            if handler.IsCallback(consts.CallBackCommonGroupModifyConfirm, True):
+                await handler.group.ModifyConfirm()
             if handler.IsCallback(consts.CallBackAdGetLink):
                 await handler.adLink()
             if handler.IsCallback(consts.CallBackAdCheck):

@@ -64,6 +64,8 @@ class PrivateHandler(BaseHandler):
             return await self.Reply(content)
 
     async def CommonGroup(self):
+        await self.CleanPreviousMessage()
+
         return await self.Respond("请选择要进行的公群操作", consts.BtnCommonGroup)
 
     async def GenLink(self):

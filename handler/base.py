@@ -72,6 +72,18 @@ class BaseHandler():
     def SenderIdString(self):
         return str(self.sender.id)
 
+    # 清理上一个消息
+    async def CleanPreviousMessage(self):
+        return await self.Delete(self.msg.id)
+
+    # 修改上一个消息
+    async def EditPreviousMessage(self, content):
+        return await self.Edit(self.msg.id, content)
+
+    # 清理问题
+    async def CleanAskMessage(self, msg):
+        return await self.Delete([msg.id, msg.sent_message.id])
+
     # 给当前用户发送消息
     async def Respond(self, content, replyMarkup=None):
         if replyMarkup is not None:
