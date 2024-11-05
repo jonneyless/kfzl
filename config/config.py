@@ -52,6 +52,7 @@ logFormat = env.str("LOG_FORMAT", "%(asctime)s Line%(lineno)d [%(levelname)s] %(
 logDateFormat = env.str("LOG_DATE_FORMAT", "%Y-%m-%d %H:%M:%S")
 createLinkUrl = env.str("CREATE_LINK_URL")
 welcomeApiUrl = env.str("WELCOME_API_URL")
+danbao444ApiUrl = env.str("DANBAO444_API_URL")
 he444ApiUrl = env.str("HE444_API_URL")
 callbackUrl = env.str("CALLBACK_URL")
 match env.str("LOG_LEVEL"):

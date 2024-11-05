@@ -8,7 +8,8 @@ UnblockButtons = [
     {'text': '解开 daqun', 'number': 4},
     {'text': '解开 huione888', 'number': 8},
     {'text': '解开 vip', 'number': 16},
-    {'text': '解开禁言', 'number': 32},
+    {'text': '解开公群禁言', 'number': 32},
+    {'text': '解开公群屏蔽', 'number': 64},
 ]
 
 BtnWelcome = [

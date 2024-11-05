@@ -7,7 +7,7 @@ from database.service import getFrom, getKefu, getUnCheatCount, getUnBlackCount,
 from handler.ad import AdHandler
 from handler.base import BaseHandler
 from handler.group import GroupHandler
-from libs.helper import getUserCheat, getUserBlack, userUnCheat, userUnBlack, getUserInfo, buildUnblockButton, userUnban, userGQUnban, formatDatetime, setBlack, setCheat, checkOfficial
+from libs.helper import getUserCheat, getUserBlack, userUnCheat, userUnBlack, getUserInfo, buildUnblockButton, userUnban, userGQUnban, formatDatetime, setBlack, setCheat, checkOfficial, userGQUnBlack
 from libs.logger import logger
 
 
@@ -80,8 +80,15 @@ class CallbackHandler(BaseHandler):
             if user is not None:
                 content += "用户名：@<code>%s</code>\n" % user.username
 
+            await self.Edit(loading.id, content)
+
             content += '解黑名单次数：%s\n' % getUnBlackCount(userId)
+
+            await self.Edit(loading.id, content)
+
             content += '解骗子库次数：%s\n' % getUnCheatCount(userId)
+
+            await self.Edit(loading.id, content)
 
             cheat = getUserCheat(userId)
             if cheat is not None and cheat['flag'] == 1:
@@ -91,6 +98,8 @@ class CallbackHandler(BaseHandler):
                 content += "骗子库：否\n"
                 status.append('0')
 
+            await self.Edit(loading.id, content)
+
             black = getUserBlack(userId)
             if black is not None and black['flag'] == 1:
                 content += "黑名单：是，%s, %s\n" % (black['reason'], black['ope_user'])
@@ -99,63 +108,40 @@ class CallbackHandler(BaseHandler):
                 content += "黑名单：否\n"
                 status.append('0')
 
-            userInfo = getUserInfo(userId)
-            if userInfo is not None:
-                if 'daqun' in userInfo:
-                    if userInfo['daqun']['is_restricted'] == 1:
-                        content += "大群 @daqun 禁言：是\n"
-                    else:
-                        content += "大群 @daqun 禁言：否\n"
+            await self.Edit(loading.id, content)
 
-                    if userInfo['daqun']['is_baned'] == 1:
-                        content += "大群 @daqun 屏蔽：是\n"
-                    else:
-                        content += "大群 @daqun 屏蔽：否\n"
+            userInfoMaps = [
+                {'type': 'daqun', 'text': '大群 @daqun '},
+                {'type': 'huione888', 'text': '大群 @huione888 '},
+                {'type': 'vip', 'text': 'VIP '},
+                {'type': 'gongqun', 'text': '公群'},
+            ]
 
-                    if userInfo['daqun']['is_restricted'] == 1 or userInfo['daqun']['is_baned'] == 1:
-                        status.append('1')
-                    else:
-                        status.append('0')
+            for infoMap in userInfoMaps:
+                userInfo = getUserInfo(userId, infoMap['type'])
+                state = '0'
+                if userInfo is not None and 'is_restricted' in userInfo and userInfo['is_restricted'] == 1:
+                    content += infoMap['text'] + "禁言：是\n"
+                    state = '1'
+                else:
+                    content += infoMap['text'] + "禁言：否\n"
 
-                if 'huione888' in userInfo:
-                    if userInfo['huione888']['is_restricted'] == 1:
-                        content += "大群 @huione888 禁言：是\n"
-                    else:
-                        content += "大群 @huione888 禁言：否\n"
+                if infoMap['type'] == 'gongqun':
+                    status.append(state)
 
-                    if userInfo['huione888']['is_baned'] == 1:
-                        content += "大群 @huione888 屏蔽：是\n"
-                    else:
-                        content += "大群 @huione888 屏蔽：否\n"
+                    state = '0'
 
-                    if userInfo['huione888']['is_restricted'] == 1 or userInfo['huione888']['is_baned'] == 1:
-                        status.append('1')
-                    else:
-                        status.append('0')
+                if userInfo is not None and 'is_baned' in userInfo and userInfo['is_baned'] == 1:
+                    content += infoMap['text'] + "屏蔽：是\n"
+                    state = '1'
+                else:
+                    content += infoMap['text'] + "屏蔽：否\n"
 
-                if 'vip' in userInfo:
-                    if userInfo['vip']['is_restricted'] == 1:
-                        content += "VIP禁言：是\n"
-                    else:
-                        content += "VIP禁言：否\n"
+                status.append(state)
 
-                    if userInfo['vip']['is_baned'] == 1:
-                        content += "VIP屏蔽：是\n"
-                    else:
-                        content += "VIP屏蔽：否\n"
+                await self.Edit(loading.id, content)
 
-                    if userInfo['vip']['is_restricted'] == 1 or userInfo['vip']['is_baned'] == 1:
-                        status.append('1')
-                    else:
-                        status.append('0')
-
-                if 'gongqun' in userInfo:
-                    if userInfo['vip']['is_restricted'] == 1:
-                        content += "公群禁言：是\n"
-                        status.append('1')
-                    else:
-                        content += "公群禁言：否\n"
-                        status.append('0')
+        logger.info(status)
 
         buttons = []
         selectAll = 0
@@ -213,6 +199,7 @@ class CallbackHandler(BaseHandler):
                 content += '失败'
             else:
                 content += '成功'
+                userGQUnban(userId)
 
             await msg.edit(content)
 
@@ -222,6 +209,7 @@ class CallbackHandler(BaseHandler):
                 content += '失败'
             else:
                 content += '成功'
+                userGQUnBlack(userId)
 
             await msg.edit(content)
 
@@ -277,10 +265,20 @@ class CallbackHandler(BaseHandler):
             await msg.edit(content)
 
         if (selected & 32) == 32:
-            content += '\n公群解除禁言：'
-            callbackData = {'message_id': msg.id, 'chat_id': self.chatId, 'text': content}
-            content += '处理中...'
-            await msg.edit(content)
+            if (selected & 64) == 64:
+                callbackData = {'message_id': msg.id, 'chat_id': self.chatId, 'text': content, 'type': '公群解除禁言', 'next': 64, 'user_id': userId}
+            else:
+                callbackData = {'message_id': msg.id, 'chat_id': self.chatId, 'text': content, 'type': '公群解除禁言'}
+
+            content_show = content + '\n公群解除禁言：处理中...'
+            await msg.edit(content_show)
+
+            userGQUnBlack(userId, json.dumps(callbackData))
+
+        elif (selected & 64) == 64:
+            callbackData = {'message_id': msg.id, 'chat_id': self.chatId, 'text': content, 'type': '公群解除屏蔽'}
+            content_show = content + '\n公群解除屏蔽：处理中...'
+            await msg.edit(content_show)
 
             userGQUnban(userId, json.dumps(callbackData))
 

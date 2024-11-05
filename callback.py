@@ -3,6 +3,7 @@ import re
 from wsgiref.simple_server import make_server
 
 from libs.api import editMessage
+from libs.helper import userGQUnban
 
 
 def callback(environ, response):
@@ -22,11 +23,18 @@ def callback(environ, response):
 
         params = json.loads(bodyData['callback_data'])
         if bodyData['flag'] != 1:
-            params['text'] += '失败'
+            params['text'] += '\n' + params['type'] + '：失败'
         else:
-            params['text'] += '成功'
+            params['text'] += '\n' + params['type'] + '：成功'
 
-        editMessage(params)
+        if 'next' in params:
+            if (params['next'] & 64) == 64:
+                callbackData = {'message_id': params['message_id'], 'chat_id': params['chat_id'], 'text': params['text'], 'type': '公群解除屏蔽'}
+                params['text'] += '\n公群解除屏蔽：处理中...'
+
+                userGQUnban(params['user_id'], json.dumps(callbackData))
+
+        editMessage({'message_id': params['message_id'], 'chat_id': params['chat_id'], 'text': params['text']})
 
     data = json.dumps([{'message': 'success', 'data': []}])
     return [data.encode('utf-8')]

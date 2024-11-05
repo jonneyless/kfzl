@@ -10,7 +10,7 @@ class AdHandler(BaseHandler):
     async def adLink(self):
         await self.CleanPreviousMessage()
 
-        msg = await self.Ask('请输入获取指令')
+        msg = await self.Ask('请输入获取广告链接指令')
         if msg is None:
             return await self.Respond('未检测到指令')
 

@@ -7,7 +7,7 @@ import requests
 from hydrogram.types import InlineKeyboardButton
 
 import consts
-from config import gqzlBotToken, welcomeApiUrl, he444ApiUrl, createLinkUrl, callbackUrl
+from config import gqzlBotToken, welcomeApiUrl, danbao444ApiUrl, he444ApiUrl, createLinkUrl, callbackUrl
 from libs.logger import logger
 
 
@@ -15,14 +15,19 @@ def getWelcomeApi(api):
     return "%s/%s" % (welcomeApiUrl, api)
 
 
+def getDanbao444Api(api):
+    return "%s/%s" % (danbao444ApiUrl, api)
+
+
 def getHe444Api(api):
     return "%s/%s" % (he444ApiUrl, api)
 
 
 def getDataFromApi(url, **kwargs):
-    params = None
     if 'params' in kwargs:
         params = kwargs['params']
+    else:
+        params = {}
 
     if 'key' not in params:
         params['key'] = 'huionedb'
@@ -45,9 +50,10 @@ def getDataFromApi(url, **kwargs):
 
 
 def setDataByApi(url, **kwargs):
-    params = None
     if 'params' in kwargs:
         params = kwargs['params']
+    else:
+        params = {}
 
     if 'key' not in params:
         params['key'] = 'huionedb'
@@ -80,8 +86,16 @@ def getDataFromWelcome(api, **kwargs):
     return getDataFromApi(getWelcomeApi(api), **kwargs)
 
 
+def setDataForDanbao444(api, **kwargs):
+    return setDataByApi(getDanbao444Api(api), **kwargs)
+
+
+def getDataFromDanbao444(api, **kwargs):
+    return getDataFromApi(getDanbao444Api(api), **kwargs)
+
+
 def getUnUsedGroupNum():
-    data = getDataFromWelcome('dbgroupnums')
+    data = getDataFromDanbao444('dbgroupnums')
     if data is not None:
         return data
 
@@ -89,7 +103,7 @@ def getUnUsedGroupNum():
 
 
 def getUserSpecialGroup(userId):
-    data = getDataFromWelcome('identity', params={'user_tg_id': userId})
+    data = getDataFromDanbao444('identity', params={'user_tg_id': userId})
     if data is not None and 'groups' in data:
         return len(data['groups'])
 
@@ -105,23 +119,23 @@ def getUserCommonGroup(userId):
 
 
 def getUserCheatInfo(userId):
-    return getDataFromWelcome('cheatinfo', params={'user_tg_id': userId})
+    return getDataFromDanbao444('cheatinfo', params={'user_tg_id': userId})
 
 
 def getUserCheat(userId):
-    return getDataFromWelcome('cheat', params={'tgid': userId})
+    return getDataFromDanbao444('cheat', params={'tgid': userId})
 
 
 def getUserBlack(userId):
-    return getDataFromWelcome('black', params={'tgid': userId})
+    return getDataFromDanbao444('black', params={'tgid': userId})
 
 
-def getUserInfo(userId):
-    return getDataFromWelcome('kefu/userinfo', params={'user_tg_id': userId})
+def getUserInfo(userId, type="gongqun"):
+    return getDataFromWelcome('kefu/userinfo', params={'user_tg_id': userId, 'type': type})
 
 
 def userUnCheat(userId):
-    data = setDataForWelcome('cache/delCheatSpecial', params={'key': 'huionedb4', 'tgid': userId})
+    data = setDataForDanbao444('cache/delCheatSpecial', params={'key': 'huionedb4', 'tgid': userId})
     if data is not None:
         return True
 
@@ -129,7 +143,7 @@ def userUnCheat(userId):
 
 
 def userUnBlack(userId):
-    data = setDataForWelcome('cache/delCheat', params={'key': 'huionedb4', 'tgid': userId})
+    data = setDataForDanbao444('cache/delCheat', params={'key': 'huionedb4', 'tgid': userId})
     if data is not None:
         return True
 
@@ -144,8 +158,22 @@ def userUnban(userId, actType, groupType):
     return False
 
 
-def userGQUnban(userId, callbackData):
-    data = getDataFromWelcome('kefu/cancelRestrictGongqun', params={'user_tg_id': userId, 'callback_data': callbackData, 'callback_url': callbackUrl})
+def userGQUnBlack(userId, callbackData=None):
+    if callbackData is None:
+        data = getDataFromWelcome('kefu/cancelRestrictGongqun', params={'user_tg_id': userId, 'callback_data': {}, 'callback_url': 'http://huione.test'})
+    else:
+        data = getDataFromWelcome('kefu/cancelRestrictGongqun', params={'user_tg_id': userId, 'callback_data': callbackData, 'callback_url': callbackUrl})
+    if data is not None:
+        return True
+
+    return False
+
+
+def userGQUnban(userId, callbackData=None):
+    if callbackData is None:
+        data = getDataFromWelcome('kefu/unbanGongqun', params={'user_tg_id': userId, 'callback_data': {}, 'callback_url': 'http://huione.test'})
+    else:
+        data = getDataFromWelcome('kefu/unbanGongqun', params={'user_tg_id': userId, 'callback_data': callbackData, 'callback_url': callbackUrl})
     if data is not None:
         return True
 
@@ -153,7 +181,7 @@ def userGQUnban(userId, callbackData):
 
 
 def checkCheatList(username):
-    data = getDataFromWelcome('checkCheat', params={'username': username})
+    data = getDataFromDanbao444('checkCheat', params={'username': username})
     if data is not None and "flag" in data:
         return data
 
@@ -357,15 +385,15 @@ def createBotApproveLink(groupTgId):
 
 
 def getGroupBackupData():
-    return getDataFromWelcome("kefu/beiyong")
+    return getDataFromDanbao444("kefu/beiyong")
 
 
 def getGroupInfo(title):
-    return getDataFromWelcome("kefu/groupinfo", params={'title': title})
+    return getDataFromDanbao444("kefu/groupinfo", params={'title': title})
 
 
 def setGroupTitle(groupId, title, userTgId, username, fullname):
-    return setDataForWelcome("kefu/settitle", params={'group_tg_id': groupId, 'title_new': title, 'user_tg_id': userTgId, 'username': username, 'fullname': fullname})
+    return setDataForDanbao444("kefu/settitle", params={'group_tg_id': groupId, 'title_new': title, 'user_tg_id': userTgId, 'username': username, 'fullname': fullname})
 
 
 def createAdLink(groupNum, monthAd, auditLink):
