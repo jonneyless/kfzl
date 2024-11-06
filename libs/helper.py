@@ -3,6 +3,7 @@ import json
 import re
 import time
 
+import pytz
 import requests
 from hydrogram.types import InlineKeyboardButton
 
@@ -189,7 +190,7 @@ def checkCheatList(username):
 
 
 def getPastAds():
-    startTime = int(time.mktime(datetime.date.today().timetuple())) + 3600
+    startTime = int(pytz.timezone("Asia/Bangkok").localize(datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0), is_dst=None).timestamp())
     url = "http://qunguan.huionedanbao.com:8680/api/gongqiu?key=huionedb&start=%s" % startTime
 
     response = requests.get(url, timeout=30)
