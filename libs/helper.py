@@ -189,9 +189,8 @@ def checkCheatList(username):
 
 
 def getPastAds():
-    startTime = int(time.mktime(datetime.date.today().timetuple()))
+    startTime = int(time.mktime(datetime.date.today().timetuple())) + 3600
     url = "http://qunguan.huionedanbao.com:8680/api/gongqiu?key=huionedb&start=%s" % startTime
-    print(url)
 
     response = requests.get(url, timeout=30)
 

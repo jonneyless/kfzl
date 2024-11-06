@@ -92,13 +92,13 @@ class BaseHandler():
         return await self.Delete([msg.id, msg.sent_message.id])
 
     # 给当前用户发送消息
-    async def Respond(self, content, replyMarkup=None, inlineMarkup=True):
+    async def Respond(self, content, replyMarkup=None, inlineMarkup=True, DisableWebPagePreview=False):
         if replyMarkup is not None:
             if inlineMarkup:
                 replyMarkup = InlineKeyboardMarkup(inline_keyboard=replyMarkup)
             else:
                 replyMarkup = ReplyKeyboardMarkup(keyboard=replyMarkup)
-        return await self.client.send_message(chat_id=self.chatId, text=content, reply_markup=replyMarkup, disable_web_page_preview=True)
+        return await self.client.send_message(chat_id=self.chatId, text=content, reply_markup=replyMarkup, disable_web_page_preview=DisableWebPagePreview)
 
     # 删除消息
     async def Delete(self, msgId):

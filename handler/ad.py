@@ -66,7 +66,7 @@ class AdHandler(BaseHandler):
             usernames = re.findall(pattern, contact[0])
 
         groupNum = 0
-        pattern = r'公群(\d*)'
+        pattern = r'公群(\d+)'
         groupNumData = re.findall(pattern, msg.text)
         if len(groupNumData) > 0:
             groupNum = int(groupNumData[0])
