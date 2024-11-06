@@ -50,6 +50,32 @@ def getDataFromApi(url, **kwargs):
     return None
 
 
+async def getDataFromApiAsync(url, **kwargs):
+    if 'params' in kwargs:
+        params = kwargs['params']
+    else:
+        params = {}
+
+    if 'key' not in params:
+        params['key'] = 'huionedb'
+
+    try:
+        response = requests.get(url, params)
+        data = response.json()
+        logger.info('Request Url: ' + url)
+        logger.info('Response Params: ' + json.dumps(params))
+        logger.info('Response Data: ' + json.dumps(data))
+        if "message" in data and data['message'] == 'success':
+            return data['data']
+    except Exception as e:
+        logger.error('url: ' + url)
+        logger.error('params: ' + json.dumps(params))
+        logger.error(e)
+        pass
+
+    return None
+
+
 def setDataByApi(url, **kwargs):
     if 'params' in kwargs:
         params = kwargs['params']
@@ -123,15 +149,15 @@ def getUserCheatInfo(userId):
     return getDataFromDanbao444('cheatinfo', params={'user_tg_id': userId})
 
 
-def getUserCheat(userId):
+async def getUserCheat(userId):
     return getDataFromDanbao444('cheat', params={'tgid': userId})
 
 
-def getUserBlack(userId):
+async def getUserBlack(userId):
     return getDataFromDanbao444('black', params={'tgid': userId})
 
 
-def getUserInfo(userId, type="gongqun"):
+async def getUserInfo(userId, type="gongqun"):
     return getDataFromWelcome('kefu/userinfo', params={'user_tg_id': userId, 'type': type})
 
 

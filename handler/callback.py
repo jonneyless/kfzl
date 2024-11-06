@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 from hydrogram.types import InlineKeyboardButton
@@ -80,17 +81,17 @@ class CallbackHandler(BaseHandler):
             if user is not None:
                 content += "用户名：@<code>%s</code>\n" % user.username
 
-            await self.Edit(loading.id, content)
-
             content += '解黑名单次数：%s\n' % getUnBlackCount(userId)
-
-            await self.Edit(loading.id, content)
-
             content += '解骗子库次数：%s\n' % getUnCheatCount(userId)
 
-            await self.Edit(loading.id, content)
+            taskCheat = asyncio.create_task(getUserCheat(userId))
+            taskBlack = asyncio.create_task(getUserBlack(userId))
+            taskDaqun = asyncio.create_task(getUserInfo(userId, 'daqun'))
+            taskHuione888 = asyncio.create_task(getUserInfo(userId, 'huione888'))
+            taskVip = asyncio.create_task(getUserInfo(userId, 'vip'))
+            taskGongqun = asyncio.create_task(getUserInfo(userId, 'gongqun'))
 
-            cheat = getUserCheat(userId)
+            cheat = await taskCheat
             if cheat is not None and cheat['flag'] == 1:
                 content += "骗子库：是，%s, %s\n" % (cheat['reason'], cheat['ope_user'])
                 status.append('1')
@@ -98,17 +99,13 @@ class CallbackHandler(BaseHandler):
                 content += "骗子库：否\n"
                 status.append('0')
 
-            await self.Edit(loading.id, content)
-
-            black = getUserBlack(userId)
+            black = await taskBlack
             if black is not None and black['flag'] == 1:
                 content += "黑名单：是，%s, %s\n" % (black['reason'], black['ope_user'])
                 status.append('1')
             else:
                 content += "黑名单：否\n"
                 status.append('0')
-
-            await self.Edit(loading.id, content)
 
             userInfoMaps = [
                 {'type': 'daqun', 'text': '大群 @daqun '},
@@ -118,7 +115,15 @@ class CallbackHandler(BaseHandler):
             ]
 
             for infoMap in userInfoMaps:
-                userInfo = getUserInfo(userId, infoMap['type'])
+                if infoMap['type'] == 'daqun':
+                    userInfo = await taskDaqun
+                elif infoMap['type'] == 'huione888':
+                    userInfo = await taskHuione888
+                elif infoMap['type'] == 'vip':
+                    userInfo = await taskVip
+                else:
+                    userInfo = await taskGongqun
+
                 state = '0'
                 if userInfo is not None and 'is_restricted' in userInfo and userInfo['is_restricted'] == 1:
                     content += infoMap['text'] + "禁言：是\n"
@@ -138,10 +143,6 @@ class CallbackHandler(BaseHandler):
                     content += infoMap['text'] + "屏蔽：否\n"
 
                 status.append(state)
-
-                await self.Edit(loading.id, content)
-
-        logger.info(status)
 
         buttons = []
         selectAll = 0
