@@ -149,15 +149,15 @@ def getUserCheatInfo(userId):
     return getDataFromDanbao444('cheatinfo', params={'user_tg_id': userId})
 
 
-async def getUserCheat(userId):
+def getUserCheat(userId):
     return getDataFromDanbao444('cheat', params={'tgid': userId})
 
 
-async def getUserBlack(userId):
+def getUserBlack(userId):
     return getDataFromDanbao444('black', params={'tgid': userId})
 
 
-async def getUserInfo(userId, type="gongqun"):
+def getUserInfo(userId, type="gongqun"):
     return getDataFromWelcome('kefu/userinfo', params={'user_tg_id': userId, 'type': type})
 
 
