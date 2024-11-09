@@ -33,13 +33,17 @@ def getDataFromApi(url, **kwargs):
     if 'key' not in params:
         params['key'] = 'huionedb'
 
+    successField = "message"
+    if 'success' in kwargs:
+        successField = kwargs['success']
+
     try:
         response = requests.get(url, params)
         data = response.json()
         logger.info('Request Url: ' + url)
         logger.info('Response Params: ' + json.dumps(params))
         logger.info('Response Data: ' + json.dumps(data))
-        if "message" in data and data['message'] == 'success':
+        if successField in data and data[successField] == 'success':
             return data['data']
     except Exception as e:
         logger.error('url: ' + url)
@@ -495,31 +499,11 @@ def checkOfficial(userId):
 
 
 def checkDeposit(userId):
-    tg_url = "http://www.yajin.com:8089/api/history"
+    url = "http://www.yajin.com:8089/api/history"
 
-    headers = {
-        "Content-Type": "application/json",
-    }
-    data = {
-        "tgid": userId,
-    }
-    response = requests.get(tg_url, params=data, headers=headers, timeout=30)
-
-    if response is not None:
-        try:
-            logger.info('Request Url: ' + tg_url)
-            logger.info('Response Params: ' + json.dumps(data))
-            data = response.json()
-            logger.info('Response Data: ' + json.dumps(data))
-            if "msg" in data and data["msg"] == "success":
-                return data["data"]['detail']
-
-            return []
-        except Exception as e:
-            logger.error('url: ' + tg_url)
-            logger.error('params: ' + json.dumps(data))
-            logger.error(e)
-            return []
+    data = getDataFromApi(url, params={'tgid': userId}, success="msg")
+    if data is not None:
+        return data['detail']
 
     return []
 
