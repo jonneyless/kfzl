@@ -507,13 +507,18 @@ def checkDeposit(userId):
 
     if response is not None:
         try:
+            logger.info('Request Url: ' + tg_url)
+            logger.info('Response Params: ' + json.dumps(data))
             data = response.json()
-            if "message" in data and data["message"] == "success":
+            logger.info('Response Data: ' + json.dumps(data))
+            if "msg" in data and data["msg"] == "success":
                 return data["data"]['detail']
 
             return []
         except Exception as e:
-            print("checkDeposit error %s" % e)
+            logger.error('url: ' + tg_url)
+            logger.error('params: ' + json.dumps(data))
+            logger.error(e)
             return []
 
     return []
