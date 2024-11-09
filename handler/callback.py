@@ -3,7 +3,7 @@ import json
 from hydrogram.types import InlineKeyboardButton
 
 from consts import UnblockButtons, CallBackUnblockConfirm, CallBackSetBlockConfirm, CallBackUnblock, CallBackCancel
-from database.service import getFrom, getKefu, getUnCheatCount, getUnBlackCount, NewUnblockRecord, getUnblockRecords
+from database.service import getFrom, getKefu, getUnCheatCount, getUnBlackCount, NewUnblockRecord, getUnblockRecords, getUnbanMaxCount, getSelfUnbanCount
 from handler.ad import AdHandler
 from handler.base import BaseHandler
 from handler.group import GroupHandler
@@ -324,12 +324,18 @@ class CallbackHandler(BaseHandler):
                     if (record.type & actType) == actType:
                         recordGroup[actType]['data'].append(record)
 
-            content = "客户解禁记录如下：\n"
-            content += "tgId：<code>%s</code>\n" % userId
+            content = "tgId：<code>%s</code>\n" % userId
 
             user = getFrom(userId)
             if user is not None:
                 content += "用户名：@<code>%s</code>\n" % user.username
+
+            userUnbanMaxCount = getUnbanMaxCount(userId)
+            userSelfUnbanCount = getSelfUnbanCount(userId)
+            content += "\n自助解禁：\n总次数：%s\n解封次数：%s" % (userUnbanMaxCount, userSelfUnbanCount)
+
+            if len(records) > 0:
+                content += "\n\n客服解禁：\n"
 
             for actType in recordGroup:
                 if len(recordGroup[actType]['data']) == 0:

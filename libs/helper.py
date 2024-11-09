@@ -492,3 +492,48 @@ def checkOfficial(userId):
         return data['flag'] == 1
 
     return False
+
+
+def checkDeposit(userId):
+    tg_url = "http://www.yajin.com:8089/api/history"
+
+    headers = {
+        "Content-Type": "application/json",
+    }
+    data = {
+        "tgid": userId,
+    }
+    response = requests.get(tg_url, params=data, headers=headers, timeout=30)
+
+    if response is not None:
+        try:
+            data = response.json()
+            if "message" in data and data["message"] == "success":
+                return data["data"]['detail']
+
+            return []
+        except Exception as e:
+            print("checkDeposit error %s" % e)
+            return []
+
+    return []
+
+
+def userVip(userId):
+    data = getDataFromDanbao444('check/vip', params={'user_tg_id': userId})
+    if data is not None:
+        return int(data['is_vip']) == 1
+
+    return False
+
+
+def userSVip(userId):
+    data = getDataFromDanbao444('check/svip', params={'user_tg_id': userId})
+    if data is not None:
+        return int(data['is_svip']) == 1
+
+    return False
+
+
+def userAdminInfo(userId):
+    return getDataFromDanbao444('kefu/admininfo', params={'user_tg_id': userId})

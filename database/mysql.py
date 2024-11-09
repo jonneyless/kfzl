@@ -129,3 +129,18 @@ class SensitiveWords(BaseModel):
 
     class Meta:
         table_name = "sensitive_words"
+
+
+class LogFromUnban(BaseModel):
+    id = UnsignedBigIntegerField(index=True)
+    tg_id = CharField(max_length=64)
+    type = UnsignedTinyIntegerField()
+    index = UnsignedIntegerField(default=0)
+    max_index = UnsignedIntegerField(default=0)
+    effective_time = UnsignedIntegerField(default=0)
+    status = UnsignedTinyIntegerField(default=0)
+    created_at = UnsignedIntegerField(default=0)
+    updated_at = UnsignedIntegerField(default=0)
+
+    class Meta:
+        table_name = "log_from_unban"

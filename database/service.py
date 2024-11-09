@@ -6,6 +6,7 @@ from peewee import SQL
 
 from database.mysql import *
 from database.redis import cache
+from libs.helper import checkDeposit, userVip, userSVip, userAdminInfo
 
 
 def NewGroupLink(groupTgId, userTgId, link, linkType):
@@ -28,6 +29,10 @@ def NewUnblockRecord(actionId, actionName, userId, types):
     model.type = types
     model.created_at = int(time.time())
     model.save()
+
+
+def getSelfUnbanCount(userId) -> int:
+    return LogFromUnban.select().where(LogFromUnban.tg_id == userId, LogFromUnban.status == 9).count()
 
 
 def getUnCheatCount(userId) -> int:
@@ -65,3 +70,30 @@ def getFrom(userId) -> Froms | None:
 
 def getKefu(userId) -> Users | None:
     return Users.get_or_none(Users.id == userId)
+
+
+def getUnbanMaxCount(userId):
+    maxCount = 3
+
+    # 因为上押增加次数
+    depositData = checkDeposit(userId)
+    for datum in depositData:
+        if datum["money"] < 500:
+            continue
+
+        maxCount += 2
+
+    if maxCount > 3:
+        maxCount += 1
+
+    if userVip(userId):
+        maxCount += 2
+
+    if userSVip(userId):
+        maxCount += 7
+
+    standingData = userAdminInfo(userId)
+    if standingData['num'] > 0:
+        maxCount += 5 + standingData['num'] * 5
+
+    return maxCount
